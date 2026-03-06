@@ -13,6 +13,7 @@
     wheelResults:[null,null,null],
     wheelRounds:{a:0,b:0},
     opponentId:null,
+    isPlayerA:false, // Track if we are player A
     fxRaf:null,
     fxParticles:[],
     fxSplats:[]
@@ -361,7 +362,7 @@
       ArenaNet.submitState(snapshotState());
     });
 
-    ArenaNet.on('wheel',({roundIndex,aOdds,result,roundNum})=>{
+    ArenaNet.on('wheel',({roundIndex,aOdds,winner,roundNum})=>{
       rollChain=rollChain.then(async ()=>{
         const me=ArenaNet.selfId;
         const idx=Number(roundIndex||0);
@@ -372,7 +373,7 @@
         const youDie=youRow?youRow.querySelector('.arena-die[data-idx="'+idx+'"]'):null;
         const oppDie=oppRow?oppRow.querySelector('.arena-die[data-idx="'+idx+'"]'):null;
 
-        const youWon=(result==='a');
+        const youWon=(winner === me);
         if(youWon) st.wheelRounds.a++;
         else st.wheelRounds.b++;
         

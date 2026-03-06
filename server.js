@@ -115,7 +115,7 @@ function startRollSequence(roomId) {
       io.to(roomId).emit('arena:wheel', {
         roundIndex: round,
         aOdds: round === 0 ? 0.5 : (currentFav === 'a' ? odds : 1 - odds),
-        result: aWins ? 'a' : 'b',
+        winner: aWins ? a : b,
         roundNum: round + 1
       });
     }, step * STEP_MS));
