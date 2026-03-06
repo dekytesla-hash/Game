@@ -19,15 +19,15 @@
   };
 
   function ensureReadyForArena(){
+    // Sehr defensiv: Arena darf fast immer gestartet werden.
+    // Einzige harte Sperre: der Held ist bereits tot.
     try{
-      if(!window.gs || !gs.hero || !Array.isArray(gs.bag) || typeof gs.equipped!=='object'){
-        return {ok:false,reason:'Wähle zuerst eine Klasse.'};
+      if(window.gs && gs.hero && typeof gs.hero.hearts==='number' && gs.hero.hearts<=0){
+        return {ok:false,reason:'Du bist besiegt. Starte neu, um die Arena zu betreten.'};
       }
     }catch{
-      return {ok:false,reason:'Wähle zuerst eine Klasse.'};
+      // Falls irgendetwas schiefgeht, Arena trotzdem erlauben.
     }
-    if(!gs.cls) return {ok:false,reason:'Wähle zuerst eine Klasse.'};
-    if(gs.hero.hearts<=0) return {ok:false,reason:'Du bist besiegt. Starte neu, um die Arena zu betreten.'};
     return {ok:true};
   }
 
