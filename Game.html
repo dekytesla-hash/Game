@@ -210,7 +210,7 @@ canvas.wc{border-radius:50%;box-shadow:0 0 22px rgba(0,0,0,.8),0 0 44px rgba(201
       <button class="btn" type="button" onclick="closeArenaMenu()">Schließen</button>
     </div>
     <div class="arena-menu" id="arenaMenu">
-      <div class="arena-desc">Betritt die Arena und messe dein Glück im Würfelduell. Der Sieger erhält die Beute des Verlierers.</div>
+      <div class="arena-desc">Betritt die Arena und messe dein Glück am Rad. Gewinne 3 Runden gegen deinen Gegner: 50/50 - dann 75/25 - und im Finale 90/10. Der Sieger erhält die Beute des Verlierers.</div>
       <div class="fxc" style="margin-top:10px">
         <button class="btng btn" id="arenaSearchBtn" type="button" onclick="arenaSearch()">Search for Player</button>
         <button class="btnr btn" id="arenaCancelBtn" type="button" onclick="arenaCancelSearch()" style="display:none">Cancel</button>
@@ -223,14 +223,14 @@ canvas.wc{border-radius:50%;box-shadow:0 0 22px rgba(0,0,0,.8),0 0 44px rgba(201
         <div class="arena-side" id="arenaYou">
           <div class="arena-side-title">Du</div>
           <div class="arena-dice-row" id="arenaYouDice"></div>
-          <div class="arena-total" id="arenaYouTotal">Total: —</div>
+          <div class="arena-total" id="arenaYouTotal">Siege: 0/3</div>
           <div class="arena-grave" id="arenaYouGrave" style="display:none"></div>
         </div>
         <div class="arena-vs">VS</div>
         <div class="arena-side" id="arenaOpp">
           <div class="arena-side-title">Gegner</div>
           <div class="arena-dice-row" id="arenaOppDice"></div>
-          <div class="arena-total" id="arenaOppTotal">Total: —</div>
+          <div class="arena-total" id="arenaOppTotal">Siege: 0/3</div>
           <div class="arena-grave" id="arenaOppGrave" style="display:none"></div>
         </div>
       </div>

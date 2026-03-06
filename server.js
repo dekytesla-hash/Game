@@ -27,8 +27,9 @@ const queue = [];                 // FIFO of socket.id
 const socketToRoom = new Map();   // socket.id -> roomId
 const matches = new Map();        // roomId -> match
 
-function randDie() {
-  return 1 + Math.floor(Math.random() * 6);
+// Wheel spin: returns true if favored player wins this round
+function spinWheel(favoriteOdds) {
+  return Math.random() < favoriteOdds;
 }
 
 function removeFromQueue(id) {
@@ -65,44 +66,76 @@ function startRollSequence(roomId) {
   m.started = true;
 
   const a = m.a, b = m.b;
-  const rollsA = [randDie(), randDie(), randDie()];
-  const rollsB = [randDie(), randDie(), randDie()];
-  const sumA = rollsA.reduce((s, x) => s + x, 0);
-  const sumB = rollsB.reduce((s, x) => s + x, 0);
-
-  // Emit rolls one-by-one so clients can animate.
-  // Timing is intentionally a bit slower than the client animation loop.
-  const STEP_MS = 1150;
+  
+  // 3 rounds with progressive odds:
+  // Round 1: 50/50 (someone emerges as favorite)
+  // Round 2: Favorite gets 75%, loser 25%
+  // Round 3: Favorite gets 90%, loser 10% -> Game ends
+  
+  const roundOdds = [0.5, 0.75, 0.9];
+  const results = [null, null, null]; // true/false for each round
+  const winner = { a: 0, b: 0 };
+  let currentFav = null; // 'a' or 'b'
+  
+  // Simulate 3 rounds
+  for (let round = 0; round < 3; round++) {
+    const odds = roundOdds[round];
+    
+    if (round === 0) {
+      // First round: pure 50/50, winner becomes favorite
+      results[round] = Math.random() < 0.5;
+      currentFav = results[round] ? 'a' : 'b';
+      if (results[round]) winner.a++; else winner.b++;
+    } else {
+      // Subsequent rounds: favorite has higher odds
+      const favWins = Math.random() < odds;
+      if (favWins) {
+        if (currentFav === 'a') winner.a++; else winner.b++;
+      } else {
+        if (currentFav === 'a') winner.b++; else winner.a++;
+        currentFav = currentFav === 'a' ? 'b' : 'a'; // loser becomes new favorite (unlikely but possible)
+      }
+      results[round] = (currentFav === 'a');
+    }
+  }
+  
+  // Determine overall winner (best of 3)
+  const winnerId = winner.a > winner.b ? a : b;
+  const loserId = winnerId === a ? b : a;
+  
+  // Emit wheel spins one-by-one
+  const STEP_MS = 2200; // Longer for wheel animation
   let step = 0;
-  for (let i = 0; i < 3; i++) {
+  
+  for (let round = 0; round < 3; round++) {
+    const odds = roundOdds[round];
+    const aWins = (winnerId === a && results[round]) || (winnerId === b && !results[round]);
+    
     m.timeouts.push(setTimeout(() => {
-      io.to(roomId).emit('arena:roll', { by: a, value: rollsA[i], rollIndex: i });
-    }, step * STEP_MS));
-    step++;
-    m.timeouts.push(setTimeout(() => {
-      io.to(roomId).emit('arena:roll', { by: b, value: rollsB[i], rollIndex: i });
+      io.to(roomId).emit('arena:wheel', {
+        roundIndex: round,
+        aOdds: round === 0 ? 0.5 : (currentFav === 'a' ? odds : 1 - odds),
+        result: aWins ? 'a' : 'b',
+        roundNum: round + 1
+      });
     }, step * STEP_MS));
     step++;
   }
-
+  
   m.timeouts.push(setTimeout(() => {
-    // Winner calculation
-    const winnerId = sumA === sumB ? (Math.random() < 0.5 ? a : b) : (sumA > sumB ? a : b);
-    const loserId = winnerId === a ? b : a;
-
     const loserState = m.states.get(loserId);
     const transfer = safeLootFromState(loserState);
 
     io.to(roomId).emit('arena:result', {
       roomId,
       winnerId,
-      totals: { [a]: sumA, [b]: sumB },
+      totals: { [a]: winner.a, [b]: winner.b },
       transfer,
-      reason: sumA === sumB ? 'tie_break' : 'normal'
+      reason: 'wheel_match_end'
     });
 
     cleanupMatch(roomId);
-  }, step * STEP_MS + 450));
+  }, step * STEP_MS + 600));
 }
 
 io.on('connection', (socket) => {

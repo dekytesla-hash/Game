@@ -10,8 +10,8 @@
 
   const st={
     open:false,
-    youRolls:[null,null,null],
-    oppRolls:[null,null,null],
+    wheelResults:[null,null,null],
+    wheelRounds:{a:0,b:0},
     opponentId:null,
     fxRaf:null,
     fxParticles:[],
@@ -68,8 +68,8 @@
   }
 
   function resetMatchUI(){
-    st.youRolls=[null,null,null];
-    st.oppRolls=[null,null,null];
+    st.wheelResults=[null,null,null];
+    st.wheelRounds={a:0,b:0};
     st.opponentId=null;
     const youRow=$('arenaYouDice'),oppRow=$('arenaOppDice');
     if(youRow) youRow.innerHTML='';
@@ -79,8 +79,8 @@
       if(oppRow){const d=document.createElement('div');d.className='arena-die';d.textContent='—';d.dataset.idx=String(i);oppRow.appendChild(d);}
     }
     const yt=$('arenaYouTotal'),ot=$('arenaOppTotal');
-    if(yt) yt.textContent='Total: —';
-    if(ot) ot.textContent='Total: —';
+    if(yt) yt.textContent='Siege: 0/3';
+    if(ot) ot.textContent='Siege: 0/3';
     const res=$('arenaResult');
     if(res){res.className='arena-result';res.textContent='Matchmaking…';}
     const yg=$('arenaYouGrave'),og=$('arenaOppGrave');
@@ -93,10 +93,8 @@
   function sum3(a){return a.reduce((s,x)=>s+(x||0),0);}
   function updateTotals(){
     const yt=$('arenaYouTotal'),ot=$('arenaOppTotal');
-    const yDone=st.youRolls.every(x=>typeof x==='number');
-    const oDone=st.oppRolls.every(x=>typeof x==='number');
-    if(yt) yt.textContent='Total: '+(yDone?String(sum3(st.youRolls)):'—');
-    if(ot) ot.textContent='Total: '+(oDone?String(sum3(st.oppRolls)):'—');
+    if(yt) yt.textContent='Siege: '+st.wheelRounds.a+'/3';
+    if(ot) ot.textContent='Siege: '+st.wheelRounds.b+'/3';
   }
 
   async function animateDie(el,value){
@@ -104,13 +102,13 @@
     el.classList.remove('final');
     el.classList.add('rolling');
     const t0=performance.now();
-    const dur=900;
+    const dur=1900;
     while(performance.now()-t0<dur){
-      el.textContent=String(1+Math.floor(Math.random()*6));
-      await wait(60);
+      el.textContent=String(Math.floor(Math.random()*100))+'%';
+      await wait(80);
     }
     el.classList.remove('rolling');
-    el.textContent=String(value);
+    el.textContent=String(value)+'%';
     el.classList.add('final');
   }
 
@@ -356,7 +354,7 @@
       setView('match');
       resetMatchUI();
       st.opponentId=opponentId||null;
-      setResult('info','Gegner gefunden. Würfel rollen…');
+      setResult('info','Gegner gefunden. Glücksrad dreht…');
     });
 
     ArenaNet.on('request_state',()=>{
@@ -364,20 +362,25 @@
       ArenaNet.submitState(snapshotState());
     });
 
-    ArenaNet.on('roll',({by,value,rollIndex})=>{
+    ArenaNet.on('wheel',({roundIndex,aOdds,result,roundNum})=>{
       rollChain=rollChain.then(async ()=>{
-        const isYou=(ArenaNet.selfId && by===ArenaNet.selfId);
-        const idx=Number(rollIndex||0);
-        const val=Number(value||1);
+        const me=ArenaNet.selfId;
+        const isYou=(me && result==='a')||(me && result==='b');
+        const idx=Number(roundIndex||0);
+        const odds=Math.round(Number(aOdds||0.5)*100);
         if(idx<0||idx>2) return;
 
-        const row=isYou?$('arenaYouDice'):$('arenaOppDice');
-        const die=row?row.querySelector('.arena-die[data-idx="'+idx+'"]'):null;
+        const youRow=$('arenaYouDice'),oppRow=$('arenaOppDice');
+        const youDie=youRow?youRow.querySelector('.arena-die[data-idx="'+idx+'"]'):null;
+        const oppDie=oppRow?oppRow.querySelector('.arena-die[data-idx="'+idx+'"]'):null;
 
-        if(isYou) st.youRolls[idx]=val;
-        else st.oppRolls[idx]=val;
+        const youWon=(result==='a');
+        if(youWon) st.wheelRounds.a++;
+        else st.wheelRounds.b++;
 
-        await animateDie(die,val);
+        await animateDie(youDie,youWon?odds:100-odds);
+        await wait(200);
+        await animateDie(oppDie,youWon?100-odds:odds);
         updateTotals();
       });
     });
@@ -391,12 +394,12 @@
       const youWin=(me && winnerId===me);
 
       if(youWin){
-        setResult('win','SIEG! Du hast die Arena gewonnen.');
+        setResult('win','🏆 SIEG! Du hast das Glücksrad gewonnen.');
         applyTransferIfWinner(transfer);
         showGrave('opp');
         spawnBlood('opp');
       }else{
-        setResult('lose','Player defeated');
+        setResult('lose','💀 Niederlage. Das Glücksrad war dir nicht hold.');
         applyLossIfLoser();
         showGrave('you');
         spawnBlood('you');
@@ -404,15 +407,15 @@
 
       // Update totals display if server provided them.
       if(totals && me){
-        const myTotal=totals[me];
-        const oppTotal=Object.entries(totals).find(([k])=>k!==me)?.[1];
-        if(typeof myTotal==='number'){st.youRolls=[null,null,null];$('arenaYouTotal').textContent='Total: '+myTotal;}
-        if(typeof oppTotal==='number'){$('arenaOppTotal').textContent='Total: '+oppTotal;}
+        const myTotal=totals[me]||0;
+        const oppTotal=Object.entries(totals).find(([k])=>k!==me)?.[1]||0;
+        if(typeof myTotal==='number'){$('arenaYouTotal').textContent='Siege: '+myTotal+'/3';}
+        if(typeof oppTotal==='number'){$('arenaOppTotal').textContent='Siege: '+oppTotal+'/3';}
       }
 
       if(reason && st.open){
         // Keep reason subtle in log; UI already shows result.
-        if(typeof window.addLog==='function') addLog('Arena: '+reason,'li');
+        if(typeof window.addLog==='function') addLog('Arena: Glücksrad-'+reason,'li');
       }
     });
 
