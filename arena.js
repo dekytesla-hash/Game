@@ -22,7 +22,7 @@
     // Sehr defensiv: Arena darf fast immer gestartet werden.
     // Einzige harte Sperre: der Held ist bereits tot.
     try{
-      if(window.gs && gs.hero && typeof gs.hero.hearts==='number' && gs.hero.hearts<=0){
+      if(window.gs && gs.hero && typeof gs.hero.hearts==='number' && gs.hero.hearts<0){
         return {ok:false,reason:'Du bist besiegt. Starte neu, um die Arena zu betreten.'};
       }
     }catch{
