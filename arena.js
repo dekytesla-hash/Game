@@ -18,11 +18,14 @@
     fxSplats:[]
   };
 
-  function hasGameState(){
-    return typeof window.gs==='object' && gs && gs.hero && Array.isArray(gs.bag) && typeof gs.equipped==='object';
-  }
   function ensureReadyForArena(){
-    if(!hasGameState()) return {ok:false,reason:'Spielzustand nicht verfügbar.'};
+    try{
+      if(!window.gs || !gs.hero || !Array.isArray(gs.bag) || typeof gs.equipped!=='object'){
+        return {ok:false,reason:'Wähle zuerst eine Klasse.'};
+      }
+    }catch{
+      return {ok:false,reason:'Wähle zuerst eine Klasse.'};
+    }
     if(!gs.cls) return {ok:false,reason:'Wähle zuerst eine Klasse.'};
     if(gs.hero.hearts<=0) return {ok:false,reason:'Du bist besiegt. Starte neu, um die Arena zu betreten.'};
     return {ok:true};
