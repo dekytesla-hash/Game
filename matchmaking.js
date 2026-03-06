@@ -4,16 +4,33 @@
 (function(){
   function wait(ms){return new Promise(r=>setTimeout(r,ms));}
 
+  function resolveArenaServerUrl(){
+    try{
+      const u=new URL(window.location.href);
+      const fromQs=u.searchParams.get('arenaServer');
+      if(fromQs){
+        localStorage.setItem('ARENA_SERVER_URL',fromQs);
+      }
+    }catch{}
+    const fromLs=(()=>{try{return localStorage.getItem('ARENA_SERVER_URL')||'';}catch{return'';}})();
+    const fromGlobal=(typeof window.ARENA_SERVER_URL==='string'?window.ARENA_SERVER_URL:'')||'';
+    return (fromGlobal||fromLs||window.location.origin).replace(/\/$/,'');
+  }
+
   async function loadSocketIoClient(){
     if(window.io) return true;
-    return new Promise((resolve)=>{
+    // Try to load from the same origin first (works when the Node server serves the page),
+    // then fall back to a CDN (works when hosting the page separately, e.g. Vercel).
+    const tryLoad=(src)=>new Promise((resolve)=>{
       const s=document.createElement('script');
-      s.src='/socket.io/socket.io.js';
+      s.src=src;
       s.async=true;
       s.onload=()=>resolve(true);
       s.onerror=()=>resolve(false);
       document.head.appendChild(s);
     });
+    if(await tryLoad('/socket.io/socket.io.js')) return true;
+    return await tryLoad('https://cdn.socket.io/4.8.3/socket.io.min.js');
   }
 
   class ArenaNetClient{
@@ -58,8 +75,11 @@
         }
 
         // If this file is opened directly (file://), socket.io can’t load from /socket.io/...
-        // In that case, we expect the user to run the provided server and open via http://localhost:3000.
-        this.socket=window.io({
+        // In that case, we expect the user to run the provided server and open via that server URL.
+        // For split-hosting (Vercel + separate server), set `?arenaServer=https://YOUR_SERVER` once.
+        const serverUrl=resolveArenaServerUrl();
+        this.socket=window.io(serverUrl,{
+          path:'/socket.io',
           transports:['websocket','polling'],
           reconnection:true,
           reconnectionAttempts:Infinity,
