@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DUNGEON FATES</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#c9a84c;--glt:#f0d080;--dark:#0a0806;--pnl:#110e0a;--pnl2:#1a1510;--brd:#3a2e1e;--red:#c0392b;--grn:#27ae60;--blu:#2980b9;--pur:#8e44ad;--txt:#d4c4a0;--dim:#7a6a50;--ora:#e67e22;--mys:#e040fb;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--dark);color:var(--txt);font-family:'Crimson Text',serif;min-height:100vh;overflow-x:hidden;background-image:radial-gradient(ellipse at 20% 50%,rgba(80,40,0,.13)0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(60,20,80,.08)0%,transparent 50%);}
+#app{max-width:1200px;margin:0 auto;padding:8px;}
+.ghdr{text-align:center;padding:12px 0 6px;border-bottom:1px solid var(--brd);margin-bottom:9px;position:relative;}
+.gtitle{font-family:'Cinzel',serif;font-size:2.4em;font-weight:900;color:var(--gold);text-shadow:0 0 26px rgba(201,168,76,.5),0 2px 4px #000;letter-spacing:7px;}
+.gsub{color:var(--dim);font-style:italic;font-size:.9em;letter-spacing:3px;}
+.hdr-ev{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:var(--pnl2);border:1px solid var(--brd);padding:4px 8px;border-radius:3px;font-family:'Cinzel',serif;font-size:.65em;letter-spacing:2px;cursor:pointer;display:none;}
+.fate-bar{display:none;padding:7px 12px;border-radius:4px;text-align:center;border:1px solid;margin-bottom:8px;font-size:.85em;}
+.fblut{background:rgba(139,0,0,.17);border-color:#8b0000;color:#ff7070;}
+.fgold{background:rgba(201,168,76,.12);border-color:var(--gold);color:var(--glt);}
+.fsoul{background:rgba(41,128,185,.12);border-color:var(--blu);color:#85c1e9;}
+.fcurs{background:rgba(80,0,100,.18);border-color:var(--pur);color:#c39bd3;}
+.ffst{background:rgba(201,168,76,.12);border-color:var(--gold);color:var(--glt);}
+.g3{display:grid;grid-template-columns:248px 1fr 248px;gap:8px;}
+.col{display:flex;flex-direction:column;gap:7px;}
+.pnl{background:var(--pnl);border:1px solid var(--brd);border-radius:4px;padding:10px;position:relative;overflow:hidden;}
+.pnl::before{content:'';position:absolute;inset:0;border-radius:4px;background:linear-gradient(135deg,rgba(201,168,76,.04)0%,transparent 50%);pointer-events:none;}
+.pt{font-family:'Cinzel',serif;font-size:.7em;letter-spacing:3px;color:var(--gold);text-transform:uppercase;border-bottom:1px solid var(--brd);padding-bottom:5px;margin-bottom:7px;}
+.portrait{width:54px;height:54px;background:var(--pnl2);border:2px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.7em;margin:0 auto 6px;box-shadow:0 0 14px rgba(201,168,76,.24);}
+.hname{text-align:center;font-family:'Cinzel',serif;font-size:.96em;color:var(--glt);margin-bottom:2px;}
+.hlvl{text-align:center;color:var(--dim);font-size:.78em;margin-bottom:6px;}
+.hrow{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin-bottom:6px;}
+.hrt{font-size:1.1em;transition:all .3s;line-height:1;display:inline-block;}
+.hrt.empty{filter:grayscale(1)opacity(.22);}
+@keyframes hrtlost{0%{transform:scale(1.6);filter:brightness(3)}to{transform:scale(1);}}
+.xprow{margin-bottom:5px;}
+.xplbl{display:flex;justify-content:space-between;font-size:.77em;margin-bottom:2px;}
+.bartrk{height:6px;background:#1a1510;border-radius:2px;overflow:hidden;border:1px solid var(--brd);}
+.barf{height:100%;border-radius:2px;transition:width .5s;}
+.bxp{background:linear-gradient(90deg,#1a4a7b,var(--blu));}
+.srow{display:flex;justify-content:space-between;align-items:center;font-size:.79em;padding:2px 0;border-bottom:1px solid rgba(58,46,30,.38);position:relative;}
+.snm{display:flex;align-items:center;gap:3px;cursor:help;}
+.shelp{font-size:.64em;color:var(--dim);border:1px solid var(--dim);border-radius:50%;width:11px;height:11px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sval{color:var(--glt);font-weight:600;}
+.stt{display:none;position:absolute;left:0;top:110%;z-index:400;background:var(--pnl);border:1px solid var(--gold);padding:6px 10px;border-radius:3px;font-size:.74em;color:var(--txt);white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.85);min-width:180px;pointer-events:none;}
+.srow:hover .stt{display:block;}
+.gdsp{color:var(--gold);font-family:'Cinzel',serif;font-size:.88em;text-align:center;margin-top:6px;}
+.blsarea{margin-top:4px;display:flex;flex-wrap:wrap;gap:2px;}
+.btg{display:inline-block;background:rgba(142,68,173,.16);border:1px solid var(--pur);padding:1px 5px;border-radius:2px;font-size:.64em;color:#c39bd3;}
+.egrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;}
+.eslot{background:var(--pnl2);border:1px dashed var(--brd);border-radius:3px;padding:3px 2px;min-height:44px;cursor:pointer;transition:all .15s;text-align:center;position:relative;overflow:hidden;}
+.eslot:hover{border-color:var(--gold);background:#1e1912;}
+.eslot.filled{border-style:solid;}
+.eslot.locked{opacity:.24;pointer-events:none;}
+.eslot .ei{font-size:1.15em;display:block;line-height:1.2;}
+.eslot .en{font-size:.52em;color:var(--dim);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;overflow:hidden;}
+.eslot .enm{font-size:.56em;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rc{color:#aaa;}.ru{color:var(--grn);}.rr{color:var(--blu);}.re{color:var(--pur);}.rl{color:var(--gold);text-shadow:0 0 6px rgba(201,168,76,.5);}
+.rmys{color:var(--mys);animation:mysGl 2s infinite alternate;}
+@keyframes mysGl{from{text-shadow:0 0 6px rgba(224,64,251,.5)}to{text-shadow:0 0 18px rgba(224,64,251,.9),0 0 35px rgba(224,64,251,.3)}}
+.bgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;}
+.bslot{background:var(--pnl2);border:1px dashed var(--brd);border-radius:3px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.18em;transition:all .15s;position:relative;}
+.bslot:hover{border-color:var(--gold);}
+.bslot.has{border-style:solid;}
+.smbd{position:absolute;top:-3px;right:-3px;background:var(--gold);color:#000;font-size:.42em;font-family:'Cinzel',serif;padding:1px 3px;border-radius:2px;font-weight:900;}
+.lcard{background:var(--pnl);border:1px solid var(--brd);border-radius:4px;padding:14px;text-align:center;position:relative;overflow:hidden;min-height:120px;}
+.lcard::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.lbg{position:absolute;inset:0;font-size:5em;display:flex;align-items:center;justify-content:center;opacity:.04;pointer-events:none;}
+.lico{font-size:2.5em;margin-bottom:5px;display:block;}
+.lnm{font-family:'Cinzel',serif;font-size:1.2em;color:var(--glt);margin-bottom:3px;}
+.ldsc{color:var(--dim);font-style:italic;margin-bottom:8px;font-size:.84em;line-height:1.4;}
+.lchips{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;}
+.chip{background:var(--pnl2);border:1px solid var(--brd);padding:3px 8px;border-radius:2px;font-size:.76em;text-align:center;}
+.chip .cv{color:var(--glt);font-family:'Cinzel',serif;}
+.trbtn{background:var(--pnl2);border:2px solid var(--gold);padding:11px;border-radius:4px;cursor:pointer;transition:all .25s;text-align:center;font-family:'Cinzel',serif;color:var(--gold);letter-spacing:3px;font-size:.84em;position:relative;overflow:hidden;}
+.trbtn:hover{background:rgba(201,168,76,.1);box-shadow:0 0 18px rgba(201,168,76,.22);}
+.trsub{font-size:.64em;color:var(--dim);letter-spacing:1px;margin-top:2px;}
+.trbtn::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(201,168,76,.05),transparent);animation:shim 3s infinite;}
+@keyframes shim{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.wpnl{display:flex;flex-direction:column;align-items:center;padding:12px;gap:9px;}
+.wwrap{position:relative;width:186px;height:186px;}
+canvas.wc{border-radius:50%;box-shadow:0 0 22px rgba(0,0,0,.8),0 0 44px rgba(201,168,76,.14);}
+.wptr{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:1.4em;filter:drop-shadow(0 2px 4px rgba(0,0,0,.8));z-index:10;}
+.wct{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:22px;height:22px;background:var(--gold);border-radius:50%;border:3px solid var(--dark);z-index:5;}
+.wlbl{font-family:'Cinzel',serif;font-size:.79em;letter-spacing:2px;color:var(--dim);text-align:center;}
+.btn{font-family:'Cinzel',serif;font-size:.76em;letter-spacing:2px;text-transform:uppercase;padding:7px 14px;border:1px solid var(--gold);background:transparent;color:var(--gold);cursor:pointer;transition:all .15s;border-radius:2px;}
+.btn:hover{background:rgba(201,168,76,.12);}
+.btn:disabled{opacity:.34;cursor:not-allowed;}
+.btnr{border-color:var(--red);color:var(--red);}.btnr:hover{background:rgba(192,57,43,.1);}
+.btng{border-color:var(--grn);color:var(--grn);}.btng:hover{background:rgba(39,174,96,.1);}
+.btnp{border-color:var(--pur);color:var(--pur);}.btnp:hover{background:rgba(142,68,173,.1);}
+.btno{border-color:var(--ora);color:var(--ora);}.btno:hover{background:rgba(230,126,34,.1);}
+.btnm{border-color:var(--mys);color:var(--mys);}.btnm:hover{background:rgba(224,64,251,.1);}
+.fxc{display:flex;justify-content:center;align-items:center;gap:7px;flex-wrap:wrap;}
+.rban{padding:8px;border-radius:4px;text-align:center;font-family:'Cinzel',serif;font-size:.98em;display:none;}
+.rban.win{background:rgba(39,174,96,.15);border:1px solid var(--grn);color:var(--grn);}
+.rban.lose{background:rgba(192,57,43,.15);border:1px solid var(--red);color:var(--red);}
+@keyframes popIn{from{transform:scale(.78);opacity:0}to{transform:scale(1);opacity:1}}
+.log{background:var(--pnl2);border:1px solid var(--brd);border-radius:3px;padding:6px;height:105px;overflow-y:auto;font-size:.78em;font-style:italic;color:var(--dim);}
+.log::-webkit-scrollbar{width:3px;}.log::-webkit-scrollbar-thumb{background:var(--brd);}
+.le{padding:1px 0;border-bottom:1px solid rgba(58,46,30,.24);}
+.lg{color:#5a9a5a;}.lb{color:#9a4a4a;}.lo{color:var(--gold);}.li{color:#5a7a9a;}.lp{color:#c39bd3;}.lm{color:var(--mys);}
+.jlist{display:flex;flex-direction:column;gap:4px;}
+.jstep{background:var(--pnl2);border:1px solid var(--brd);padding:5px 6px;border-radius:3px;display:flex;align-items:center;gap:6px;font-size:.77em;}
+.jstep.cur{border-color:var(--gold);background:rgba(201,168,76,.07);}
+.ji{font-size:1.15em;flex-shrink:0;}.jnm{font-family:'Cinzel',serif;font-size:.72em;color:var(--glt);}.jsb{font-size:.66em;color:var(--dim);}
+.junk{opacity:.33;font-size:.76em;text-align:center;padding:4px;font-style:italic;color:var(--dim);}
+.tt{position:fixed;background:var(--pnl);border:1px solid var(--gold);padding:7px 10px;border-radius:4px;font-size:.82em;pointer-events:none;z-index:9000;max-width:205px;box-shadow:0 4px 16px rgba(0,0,0,.9);display:none;}
+.ttnm{font-family:'Cinzel',serif;font-size:.94em;margin-bottom:2px;}
+.ttty{font-size:.73em;color:var(--dim);margin-bottom:3px;}
+.ttst{font-size:.78em;color:var(--dim);}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.94);display:none;align-items:center;justify-content:center;z-index:800;}
+.ov.open{display:flex;}
+.rev-box{text-align:center;max-width:420px;width:93%;padding:22px;animation:popIn .4s ease;}
+.revi{font-size:4em;margin-bottom:8px;display:block;}
+.revnm{font-family:'Cinzel',serif;font-size:1.7em;color:var(--glt);margin-bottom:3px;}
+.revty{font-size:.75em;color:var(--dim);letter-spacing:3px;text-transform:uppercase;margin-bottom:9px;}
+.revart{width:100%;height:80px;background:linear-gradient(180deg,#050508,#0a0510);border:1px solid var(--brd);border-radius:4px;margin-bottom:9px;overflow:hidden;display:none;}
+.revds{color:var(--txt);font-style:italic;line-height:1.55;margin-bottom:13px;font-size:.88em;}
+.mbd{position:fixed;inset:0;background:rgba(0,0,0,.91);display:none;align-items:center;justify-content:center;z-index:700;}
+.mbd.open{display:flex;}
+.modal{background:var(--pnl);border:1px solid var(--gold);padding:18px;border-radius:6px;max-width:490px;width:93%;text-align:center;box-shadow:0 0 44px rgba(201,168,76,.13);max-height:92vh;overflow-y:auto;}
+.modal h2{font-family:'Cinzel',serif;color:var(--gold);margin-bottom:5px;font-size:1.16em;}
+.modal p{margin-bottom:7px;color:var(--dim);font-size:.87em;}
+.cs-ov{position:fixed;inset:0;background:rgba(0,0,0,.97);display:flex;align-items:center;justify-content:center;z-index:900;overflow-y:auto;}
+.cs-box{text-align:center;max-width:820px;width:97%;padding:20px;}
+.cs-title{font-family:'Cinzel',serif;font-size:2em;color:var(--gold);margin-bottom:4px;text-shadow:0 0 18px rgba(201,168,76,.4);}
+.cs-sub{color:var(--dim);font-style:italic;margin-bottom:14px;font-size:.87em;}
+.cs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.clsc{background:var(--pnl);border:2px solid var(--brd);border-radius:5px;padding:12px 9px;cursor:pointer;transition:all .18s;text-align:left;}
+.clsc:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 5px 18px rgba(0,0,0,.6);}
+.clsc-ico{font-size:2.3em;margin-bottom:5px;display:block;text-align:center;}
+.clsc-nm{font-family:'Cinzel',serif;font-size:.9em;color:var(--glt);margin-bottom:3px;text-align:center;}
+.clsc-ds{font-size:.72em;color:var(--dim);line-height:1.4;margin-bottom:5px;}
+.clsc-slots{font-size:.65em;color:var(--dim);border-top:1px solid var(--brd);padding-top:4px;}
+.clsc-slots span{display:inline-block;background:var(--pnl2);border:1px solid var(--brd);padding:1px 4px;border-radius:2px;margin:1px 1px 1px 0;}
+.clsc-bonus{font-size:.66em;color:var(--ora);margin-top:4px;font-style:italic;}
+.loot-opts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:9px 0;}
+.lopt{background:var(--pnl2);border:2px solid;padding:9px 12px;border-radius:4px;cursor:pointer;transition:all .17s;text-align:left;min-width:118px;}
+.lopt:hover{transform:translateY(-2px);box-shadow:0 5px 16px rgba(0,0,0,.5);}
+.lopt .ln{font-family:'Cinzel',serif;font-size:.79em;}
+.lopt .ls{font-size:.69em;color:var(--dim);margin-top:2px;}
+.sgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:7px 0;}
+.si{background:var(--pnl2);border:1px solid;padding:7px;border-radius:3px;cursor:pointer;transition:all .14s;text-align:center;}
+.si:hover{background:#1e1912;}
+.si.brk{opacity:.33;pointer-events:none;}
+.si-ico{font-size:1.5em;margin-bottom:2px;}
+.si-nm{font-family:'Cinzel',serif;font-size:.68em;}
+.si-st{font-size:.65em;color:var(--dim);margin-top:1px;}
+.si-pr{color:var(--gold);font-family:'Cinzel',serif;font-size:.72em;margin-top:3px;}
+.srrow{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin:7px 0;}
+.srb{padding:3px 10px;border:1px solid;border-radius:3px;cursor:pointer;font-size:.72em;font-family:'Cinzel',serif;transition:all .14s;}
+.srb.dis{opacity:.27;pointer-events:none;}
+.smslts{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:7px 0;}
+.sms{background:var(--pnl2);border:2px dashed var(--brd);border-radius:3px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:1.28em;cursor:pointer;transition:all .14s;}
+.sms.fi{border-style:solid;}
+.sms:hover{border-color:var(--gold);}
+.smres{background:var(--pnl2);border:2px solid var(--gold);border-radius:3px;padding:9px;margin:7px 0;display:none;}
+.rtbl{width:100%;border-collapse:collapse;font-size:.74em;margin:6px 0;}
+.rtbl td{padding:2px 7px;border-bottom:1px solid var(--brd);}
+.rtbl .rp{text-align:right;font-family:'Cinzel',serif;}
+.sm-roll{margin:8px auto;width:186px;height:186px;position:relative;}
+.bls{display:flex;flex-direction:column;gap:5px;margin:7px 0;}
+.bop{background:var(--pnl2);border:1px solid var(--pur);padding:7px 9px;border-radius:3px;cursor:pointer;transition:all .14s;text-align:left;}
+.bop:hover{background:rgba(142,68,173,.12);}
+.bon{font-family:'Cinzel',serif;font-size:.82em;color:#c39bd3;}.bod{font-size:.73em;color:var(--dim);margin-top:2px;}
+.qbox{background:var(--pnl2);border:1px solid var(--ora);border-radius:3px;padding:8px;text-align:left;margin-bottom:8px;}
+.qt{font-family:'Cinzel',serif;font-size:.83em;color:var(--ora);margin-bottom:3px;}
+.qd{font-size:.8em;color:var(--dim);font-style:italic;margin-bottom:5px;line-height:1.4;}
+.qrws{display:flex;gap:7px;flex-wrap:wrap;font-size:.76em;}
+.qr{background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.27);padding:2px 6px;border-radius:2px;}
+.dbox{background:rgba(139,0,0,.14);border:1px solid #8b0000;border-radius:4px;padding:10px;}
+.dtit{font-family:'Cinzel',serif;font-size:1em;color:#ff6b6b;margin-bottom:4px;}
+.mys-box{background:rgba(224,64,251,.07);border:1px solid var(--mys);border-radius:4px;padding:12px;text-align:center;margin:8px 0;animation:mysGl 2s infinite alternate;}
+.mys-ico{font-size:2.7em;margin-bottom:6px;}
+.mys-nm{font-family:'Cinzel',serif;font-size:1.02em;color:var(--mys);margin-bottom:3px;}
+.mys-ds{font-size:.8em;color:#e0a0ff;font-style:italic;}
+#cvcv{position:fixed;inset:0;pointer-events:none;z-index:9999;display:none;}
+.govr{position:fixed;inset:0;background:rgba(0,0,0,.97);display:none;align-items:center;justify-content:center;z-index:950;flex-direction:column;gap:15px;text-align:center;}
+.govr.open{display:flex;}
+.go-t{font-family:'Cinzel',serif;font-size:2.7em;color:var(--red);text-shadow:0 0 26px rgba(192,57,43,.65);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.fup{animation:fadeUp .27s ease forwards;}
+</style>
+</head>
+<body>
+<canvas id="cvcv"></canvas>
+<div class="cs-ov" id="csOv">
+  <div class="cs-box">
+    <div class="cs-title">⚔ DUNGEON FATES</div>
+    <div class="cs-sub">Wähle deine Klasse — sie bestimmt welche Ausrüstung du tragen kannst</div>
+    <div class="cs-grid" id="csGrid"></div>
+    <div style="font-size:.72em;color:var(--dim);font-style:italic">Klicke auf eine Klasse um dein Abenteuer zu beginnen</div>
+  </div>
+</div>
+<div class="govr" id="goOv">
+  <div class="go-t">💀 GAME OVER</div>
+  <div style="color:var(--dim);font-size:1em;font-style:italic" id="goS">Du bist gefallen...</div>
+  <div style="color:var(--txt);font-size:.87em" id="goStats"></div>
+  <button class="btn" onclick="location.reload()">↺ Neu starten</button>
+</div>
+<div id="app" style="display:none">
+<header class="ghdr">
+  <div class="gtitle">⚔ DUNGEON FATES ⚔</div>
+  <div class="gsub">Jeder Schritt führt ins Unbekannte</div>
+  <div class="hdr-ev" id="hdrEv" onclick="showFateInfo()"></div>
+</header>
+<div id="fateBar" class="fate-bar"></div>
+<div class="g3">
+<div class="col">
+  <div class="pnl">
+    <div class="pt">◈ Held</div>
+    <div class="portrait" id="portrait">⚔</div>
+    <div class="hname" id="hname">Arathos</div>
+    <div class="hlvl" id="hlvl">Stufe 1</div>
+    <div class="hrow" id="hrow"></div>
+    <div class="xprow">
+      <div class="xplbl"><span>✦ XP</span><span id="xptxt">0/100</span></div>
+      <div class="bartrk"><div class="barf bxp" id="xpbar" style="width:0%"></div></div>
+    </div>
+    <div class="srow"><span class="snm">⚔ Angriff<span class="shelp">?</span><span class="stt">Erhöht Siegchance im Kampf.<br>Jeder Punkt = bessere Odds<br>in schweren Dungeons.</span></span><span class="sval" id="sAtk">10</span></div>
+    <div class="srow"><span class="snm">🛡 Verteidigung<span class="shelp">?</span><span class="stt">Reduziert Herzschaden.<br>Ab 20 DEF: 40% Chance<br>nur 1 statt 2 Herzen zu verlieren.</span></span><span class="sval" id="sDef">5</span></div>
+    <div class="srow"><span class="snm">🍀 Glück<span class="shelp">?</span><span class="stt">Siegchance +1% je 5 Glück.<br>Verbessert Item-Drops.<br>Erhöht Quest-Erfolgschance.</span></span><span class="sval" id="sLuck">5</span></div>
+    <div class="srow"><span class="snm">🚶 Schritte<span class="shelp">?</span><span class="stt">Besuchte Orte gesamt.<br>Mehr Schritte = härtere<br>Dungeons werden freigeschaltet.</span></span><span class="sval" id="sSteps">0</span></div>
+    <div class="gdsp">🪙 <span id="goldAmt">50</span> Gold</div>
+    <div class="blsarea" id="blsarea"></div>
+  </div>
+  <div class="pnl">
+    <div class="pt">◈ Ausrüstung <span style="color:var(--dim);font-size:.78em">(klick=ablegen)</span></div>
+    <div class="egrid" id="egrid"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="lcard" id="lcard">
+    <div class="lbg" id="lbg">🌑</div>
+    <span class="lico" id="lico">🗺️</span>
+    <div class="lnm" id="lnm">Deine Reise beginnt</div>
+    <div class="ldsc" id="ldsc">Drücke Weiterreisen — dein Schicksal bleibt verborgen...</div>
+    <div class="lchips" id="lchips"></div>
+  </div>
+  <div class="trbtn" id="trbtn" onclick="travel()">
+    ⚔ WEITERREISEN
+    <div class="trsub">Nächster Ort: unbekannt...</div>
+  </div>
+  <div class="pnl wpnl" id="wpnl" style="display:none">
+    <div class="pt" style="width:100%;text-align:center">◈ Rad des Schicksals</div>
+    <div class="wwrap"><div class="wptr">▼</div><canvas id="mainWheel" class="wc" width="186" height="186"></canvas><div class="wct"></div></div>
+    <div class="rban" id="rban"></div>
+    <div class="fxc">
+      <button class="btn" id="spinBtn" onclick="doSpin()">🎲 Drehen!</button>
+      <button class="btng btn" id="dmBtn" onclick="openDungMerch()" style="display:none">🛒 Händler</button>
+    </div>
+  </div>
+  <div class="pnl" id="questPnl" style="display:none">
+    <div class="pt">◈ Quest verfügbar</div>
+    <div id="questCont"></div>
+  </div>
+  <div class="pnl">
+    <div class="pt">◈ Kampflog</div>
+    <div class="log" id="logEl"><div class="le li">Willkommen! Wähle deine Klasse...</div></div>
+  </div>
+</div>
+<div class="col">
+  <div class="pnl">
+    <div class="pt">◈ Reiseweg</div>
+    <div class="jlist" id="jlist"></div>
+  </div>
+  <div class="pnl">
+    <div class="pt">◈ Beutel <span style="color:var(--dim);font-size:.84em" id="bagcnt">(0/20)</span></div>
+    <div class="bgrid" id="bgrid"></div>
+  </div>
+</div>
+</div>
+</div>
+<div class="tt" id="tt"><div class="ttnm" id="ttnm"></div><div class="ttty" id="ttty"></div><div class="ttst" id="ttst"></div></div>
+<div class="ov" id="revOv">
+  <div class="rev-box">
+    <span class="revi" id="revi">🏚</span>
+    <div class="revnm" id="revnm"></div>
+    <div class="revty" id="revty"></div>
+    <canvas class="revart" id="revart" width="380" height="80"></canvas>
+    <div class="revds" id="revds"></div>
+    <button class="btn" onclick="closeReveal()">Betreten →</button>
+  </div>
+</div>
+<div class="mbd" id="lootMbd">
+  <div class="modal">
+    <h2 id="lootTitle">⚔ Beute!</h2>
+    <p>Wähle genau <b style="color:var(--glt)">1 Item</b> das du mitnimmst — der Rest bleibt zurück.</p>
+    <div class="loot-opts" id="lootOpts"></div>
+  </div>
+</div>
+<div class="mbd" id="mysMbd">
+  <div class="modal">
+    <h2 style="color:var(--mys);text-shadow:0 0 12px rgba(224,64,251,.55)">✦ MYSTISCHES OBJEKT ✦</h2>
+    <p>Das Universum selbst bietet dir etwas Unvorstellbares dar. Nur in den tiefsten Dungeons gefunden...</p>
+    <div class="mys-box" id="mysBox"></div>
+    <div class="fxc" style="margin-top:10px">
+      <button class="btnm btn" onclick="takeMystic()">✦ Annehmen</button>
+      <button class="btn" onclick="rejectMystic()">Ablehnen</button>
+    </div>
+  </div>
+</div>
+<div class="mbd" id="mercMbd">
+  <div class="modal">
+    <h2 id="mercTitle">🛒 Händler</h2>
+    <p id="mercGold"></p>
+    <div class="sgrid" id="sgrid"></div>
+    <button class="btn" onclick="closeMerc()" style="margin-top:8px">Verlassen</button>
+  </div>
+</div>
+<div class="mbd" id="smithMbd">
+  <div class="modal">
+    <h2>⚒ Schmied</h2>
+    <p>5 Items gleicher Seltenheit → Rad drehen → neues Item</p>
+    <table class="rtbl"><tr><td>Mögliches Ergebnis</td><td class="rp">Chance</td></tr><tr id="rtblRow"><td colspan="2" style="color:var(--dim);font-style:italic">— Seltenheit wählen —</td></tr></table>
+    <div class="srrow" id="srrow"></div>
+    <div class="smslts" id="smslts"></div>
+    <div class="fxc" style="margin-top:8px">
+      <button class="btng btn" id="smithBtn" onclick="openSmithSpin()" disabled>⚒ Kombinieren &amp; Drehen</button>
+      <button class="btnr btn" onclick="closeSmith()">Schließen</button>
+    </div>
+  </div>
+</div>
+<div class="mbd" id="smSpinMbd">
+  <div class="modal">
+    <h2>⚒ Das Schicksal entscheidet...</h2>
+    <p id="smSpinDesc"></p>
+    <div class="sm-roll">
+      <div class="wptr">▼</div>
+      <canvas id="smithWheel" class="wc" width="186" height="186"></canvas>
+      <div class="wct"></div>
+    </div>
+    <div class="rban" id="smBan"></div>
+    <div class="smres" id="smRes"></div>
+    <div class="fxc" style="margin-top:8px">
+      <button class="btng btn" id="smSpinBtn" onclick="doSmithSpin()">🎲 Drehen!</button>
+      <button class="btn" id="smCloseBtn" onclick="closeSmithSpin()" style="display:none">Fertig ✓</button>
+    </div>
+  </div>
+</div>
+<div class="mbd" id="deityMbd">
+  <div class="modal">
+    <h2 id="deityTitle">✨ Höheres Wesen</h2>
+    <p id="deityDesc"></p>
+    <div class="bls" id="blslist"></div>
+    <button class="btnr btn" onclick="closeDeity()">Ablehnen</button>
+  </div>
+</div>
+<div class="mbd" id="demonMbd">
+  <div class="modal">
+    <h2 style="color:#ff6b6b">😈 Dämon erscheint!</h2>
+    <p id="demonDesc"></p>
+    <div class="dbox" id="demonBox"></div>
+    <button class="btnr btn" onclick="closeDemon()" style="margin-top:10px">Weiter...</button>
+  </div>
+</div>
+<div class="mbd" id="questMbd">
+  <div class="modal">
+    <h2 id="qtitle">📜 Quest</h2>
+    <p id="qdesc" style="font-style:italic"></p>
+    <div class="qbox" id="qbox"></div>
+    <div class="wlbl" id="qlbl">Drehe: Nimmst du die Quest an?</div>
+    <div class="sm-roll" style="margin:8px auto">
+      <div class="wptr">▼</div>
+      <canvas id="questWheel" class="wc" width="186" height="186"></canvas>
+      <div class="wct"></div>
+    </div>
+    <div class="rban" id="questBan"></div>
+    <div class="fxc" style="margin-top:7px">
+      <button class="btno btn" id="qSpinBtn" onclick="spinQuestAccept()">🎲 Annehmen?</button>
+      <button class="btno btn" id="qDoBtn" onclick="spinQuestDo()" style="display:none">⚔ Quest starten!</button>
+    </div>
+  </div>
+</div>
+<script>
+// ══════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════
+const CLASSES=[
+  {id:'warrior',name:'Krieger',icon:'⚔️',portrait:'⚔',desc:'Meister der schweren Rüstung und des Schwertkampfs. Hohe Verteidigung, solider Angriff.',
+   stats:{atk:12,def:8,luck:4,hearts:6},
+   slots:['helm','visor','chest','shouldr','pants','boots','offhand','weapon','axe','hammer','gloves','bracers','belt','amulet','ring1','ring2'],
+   bonus:'30% Chance beim Verlieren nur 1 Herz zu verlieren'},
+  {id:'rogue',name:'Schurke',icon:'🗡️',portrait:'🗡',desc:'Schnell und heimtückisch. Hoher Angriff, wenig Verteidigung, viel Glück.',
+   stats:{atk:15,def:3,luck:9,hearts:5},
+   slots:['helm','mask','chest','coat','pants','boots','dagger','bow','gloves','bracers','belt','cloak','amulet','ring1','ring2','earring'],
+   bonus:'Glücksbonus auf Siegchance wird verdoppelt'},
+  {id:'mage',name:'Magier',icon:'🪄',portrait:'🔮',desc:'Meister der Arkana. Sehr hohes Glück, schwache Verteidigung, magische Kraft.',
+   stats:{atk:8,def:3,luck:14,hearts:4},
+   slots:['mask','amulet','ring1','ring2','earring','staff','cloak','boots','belt','gloves'],
+   bonus:'+3% Siegchance je 10 Glück (extra)'},
+  {id:'paladin',name:'Paladin',icon:'🛡️',portrait:'🛡',desc:'Heiliger Kämpfer. Beste Verteidigung, mittlerer Angriff, Heilungsboni.',
+   stats:{atk:10,def:11,luck:5,hearts:7},
+   slots:['helm','visor','chest','shouldr','pants','boots','offhand','weapon','hammer','gloves','belt','amulet','ring1','ring2'],
+   bonus:'Heilsegen-Effekte sind 50% stärker'},
+  {id:'ranger',name:'Waldläufer',icon:'🏹',portrait:'🏹',desc:'Meister des Fernkampfes. Hohe Treffsicherheit durch Glück, schnelle Reflexe.',
+   stats:{atk:13,def:5,luck:10,hearts:5},
+   slots:['helm','mask','chest','coat','pants','boots','bow','dagger','gloves','bracers','belt','cloak','amulet','ring1','ring2'],
+   bonus:'Item-Drops haben +5% Chance auf Selten+'},
+  {id:'necro',name:'Nekromant',icon:'💀',portrait:'💀',desc:'Dunkler Magier der den Tod beugt. Extrem hohes Glück, schwächste Verteidigung.',
+   stats:{atk:9,def:2,luck:18,hearts:4},
+   slots:['mask','amulet','ring1','ring2','earring','staff','cloak','boots','belt'],
+   bonus:'10% Chance: kein Herzschaden bei Niederlage'},
+];
+const RARITIES={common:{name:'Gewöhnlich',color:'#aaaaaa',ch:55},uncommon:{name:'Ungewöhnlich',color:'#27ae60',ch:27},rare:{name:'Selten',color:'#2980b9',ch:12},epic:{name:'Episch',color:'#8e44ad',ch:5},legendary:{name:'Legendär',color:'#c9a84c',ch:1}};
+const RO=['common','uncommon','rare','epic','legendary'];
+const RC={common:'rc',uncommon:'ru',rare:'rr',epic:'re',legendary:'rl',mystic:'rmys'};
+const SMITH_CHANCES={common:[{r:'uncommon',p:65},{r:'rare',p:10},{r:'epic',p:2}],uncommon:[{r:'rare',p:60},{r:'epic',p:8},{r:'legendary',p:1}],rare:[{r:'epic',p:55},{r:'legendary',p:6}],epic:[{r:'legendary',p:50}]};
+const ALL_SLOTS=[
+  {id:'helm',name:'Helm',icon:'⛑️',stat:'def'},{id:'visor',name:'Visier',icon:'🪖',stat:'def'},
+  {id:'mask',name:'Maske',icon:'😷',stat:'def'},{id:'amulet',name:'Amulett',icon:'📿',stat:'luck'},
+  {id:'ring1',name:'Ring L',icon:'💍',stat:'luck'},{id:'ring2',name:'Ring R',icon:'💍',stat:'luck'},
+  {id:'earring',name:'Ohrring',icon:'✨',stat:'luck'},{id:'chest',name:'Brustpanzer',icon:'🥋',stat:'def'},
+  {id:'coat',name:'Mantelrüst.',icon:'🧥',stat:'def'},{id:'shouldr',name:'Schulter',icon:'🔰',stat:'def'},
+  {id:'weapon',name:'Schwert',icon:'⚔️',stat:'atk'},{id:'dagger',name:'Dolch',icon:'🗡️',stat:'atk'},
+  {id:'staff',name:'Stab',icon:'🪄',stat:'atk'},{id:'bow',name:'Bogen',icon:'🏹',stat:'atk'},
+  {id:'axe',name:'Axt',icon:'🪓',stat:'atk'},{id:'hammer',name:'Hammer',icon:'🔨',stat:'atk'},
+  {id:'gloves',name:'Handsch.',icon:'🧤',stat:'atk'},{id:'pants',name:'Beinharn.',icon:'👖',stat:'def'},
+  {id:'boots',name:'Stiefel',icon:'👢',stat:'def'},{id:'offhand',name:'Schild',icon:'🛡️',stat:'def'},
+  {id:'cloak',name:'Umhang',icon:'🧣',stat:'luck'},{id:'belt',name:'Gürtel',icon:'🎗️',stat:'def'},
+  {id:'bracers',name:'Armsch.',icon:'🤜',stat:'atk'},
+];
+const INAMES={helm:['Eisenhelm','Knochenhelm','Drachenhelm','Schattenkrone','Götterhelm'],visor:['Eisenvisier','Rubinvisier','Drachenauge','Schattenblick','Gottesauge'],mask:['Ledermaske','Silbermaske','Flammenmaske','Totenmaske','Ewigkeitsmaske'],amulet:['Bronzeamulett','Mondstein','Seelenstein','Phönixauge','Schicksalskette'],ring1:['Eisenring','Rubinring','Sternring','Schattenfinger','Ring der Ewigkeit'],ring2:['Kupferring','Smaragdring','Mondring','Geisterring','Ring der Götter'],earring:['Bronzetropfen','Silbertropfen','Mondperle','Schattenohr','Götterfunken'],chest:['Lederrüstung','Kettenpanzer','Drachenschuppen','Schattenpanzer','Gottesrüstung'],coat:['Ledermantel','Stahlmantel','Schuppenpelz','Schattenpelz','Göttermantel'],shouldr:['Eisenschulter','Kristallplatte','Drachenschulter','Schattenplatte','Götterplatten'],weapon:['Rostklinge','Silberschwert','Flammenklinge','Seelenspalter','Götterschwert'],dagger:['Rostdolch','Silberdolch','Giftklinge','Schattenstich','Götterdolch'],staff:['Holzstab','Mondstab','Feuerstab','Todesstab','Stab der Unendlichkeit'],bow:['Holzbogen','Silberbogen','Elfenbogen','Schattenbogen','Götterbogen'],axe:['Steinaxt','Eisenaxt','Feuerkeil','Dämonenaxt','Götteraxt'],hammer:['Holzhammer','Kriegshammer','Donnerhammer','Seelenhammer','Göttergewalt'],gloves:['Lederhand.','Stahlhand.','Feuerhand.','Schattenhand.','Götterhand.'],pants:['Lederhose','Kettenhose','Schuppenhose','Schattenhose','Götterhose'],boots:['Lederstiefel','Stahlstiefel','Windstiefel','Schattenstiefel','Götterstiefel'],offhand:['Holzschild','Stahlschild','Turmschild','Schattenschild','Göttersschild'],cloak:['Wollumhang','Seidenumhang','Feenumhang','Schattenumhang','Götterumhang'],belt:['Ledergürtel','Stahlgürtel','Drachengürtel','Schattengürtel','Göttergürtel'],bracers:['Holzarmsch.','Eisenarmsch.','Flammenarm.','Schattenarme','Götterarme']};
+const STAT_RANGES={common:{min:1,max:5},uncommon:{min:4,max:10},rare:{min:8,max:18},epic:{min:15,max:30},legendary:{min:25,max:50},mystic:{min:40,max:80}};
+const MYSTIC_ITEMS=[
+  {id:'void_eye',name:'Auge der Leere',icon:'👁️',stat:'luck',statVal:55,bonus:'Alle Ereignisse begünstigen dich.'},
+  {id:'soul_chain',name:'Ketten der Seelen',icon:'⛓️',stat:'atk',statVal:60,bonus:'Jeder Sieg in einem Dungeon gibt +1 Herz zurück.'},
+  {id:'eternity_ring',name:'Ring der Ewigkeit',icon:'🌀',stat:'luck',statVal:48,bonus:'Schicksalsereignisse dauern doppelt lang.'},
+  {id:'death_crown',name:'Krone des Todes',icon:'👑',stat:'def',statVal:72,bonus:'Immun gegen Dämon-Angriffe.'},
+  {id:'cosmos_blade',name:'Klinge des Kosmos',icon:'🌌',stat:'atk',statVal:66,bonus:'+20% Siegchance in allen Dungeons.'},
+  {id:'time_shard',name:'Splitter der Zeit',icon:'⏳',stat:'luck',statVal:52,bonus:'Dungeon-Händler immer verfügbar.'},
+  {id:'void_heart',name:'Herz der Leere',icon:'🖤',stat:'def',statVal:58,bonus:'+2 maximale Herzen beim Ausrüsten.'},
+  {id:'star_mantle',name:'Mantel der Sterne',icon:'🌠',stat:'luck',statVal:44,bonus:'10% Chance auf doppelten Schatz.'},
+];
+const DUNGEONS=[
+  {name:'Verfallene Scheune',icon:'🏚',desc:'Verrottetes Gebäude voller Ratten und Kobolde.',diff:'Sehr Leicht',ml:1,wc:85,xp:[12,28],g:[5,18],lt:1,hm:false},
+  {name:'Goblin-Höhle',icon:'🕳️',desc:'Tief im Wald, Goblins grunzen durch die Gänge.',diff:'Leicht',ml:1,wc:75,xp:[22,48],g:[14,38],lt:1,hm:false},
+  {name:'Verseuchtes Moor',icon:'🌿',desc:'Giftige Nebel und schlammige Pfade. Etwas Uraltes lebt.',diff:'Leicht',ml:1,wc:72,xp:[25,50],g:[12,35],lt:1,hm:false},
+  {name:'Räuberversteck',icon:'🏕️',desc:'Banditen haben hier ihr Lager. Schwere Beute winkt.',diff:'Leicht',ml:1,wc:70,xp:[28,55],g:[20,50],lt:1,hm:true},
+  {name:'Schimmernde Grotten',icon:'💎',desc:'Edelsteine leuchten — doch etwas bewacht sie eifersüchtig.',diff:'Leicht',ml:1,wc:68,xp:[30,58],g:[22,60],lt:1,hm:false},
+  {name:'Vergessene Krypta',icon:'⚰️',desc:'Einst mächtige Magier begraben. Energie spürbar.',diff:'Mittel',ml:2,wc:62,xp:[38,72],g:[22,62],lt:2,hm:false},
+  {name:'Verfluchte Katakomben',icon:'💀',desc:'Rastlose Geister bewachen vergrabene Schätze.',diff:'Mittel',ml:2,wc:60,xp:[42,78],g:[28,68],lt:2,hm:true},
+  {name:'Geisterturm',icon:'🏰',desc:'Ein verlassener Turm, Geister aus vergangenen Kriegen.',diff:'Mittel',ml:2,wc:58,xp:[45,82],g:[30,72],lt:2,hm:false},
+  {name:'Pestgraben',icon:'☠️',desc:'Sieche Kreaturen bewachen eine Öffnung ins Nichts.',diff:'Mittel',ml:3,wc:55,xp:[50,90],g:[35,75],lt:2,hm:false},
+  {name:'Tempel der Spinnen',icon:'🕷️',desc:'Riesige Spinnen weben ihre Netze in den Gängen.',diff:'Mittel',ml:2,wc:57,xp:[44,80],g:[29,70],lt:2,hm:false},
+  {name:'Feuergrotte',icon:'🌋',desc:'Lavabäche erhellen diesen Ort. Schwefel liegt in der Luft.',diff:'Schwer',ml:3,wc:50,xp:[68,118],g:[48,108],lt:2,hm:false},
+  {name:'Eispalast der Verdammten',icon:'🧊',desc:'Eiskristalle schimmern im Licht gefangener Seelen.',diff:'Schwer',ml:3,wc:48,xp:[72,122],g:[52,112],lt:2,hm:false},
+  {name:'Sturmzitadelle',icon:'⛈️',desc:'Blitze schlagen ununterbrochen ein. Wächter patrouillieren.',diff:'Schwer',ml:3,wc:47,xp:[75,125],g:[55,115],lt:2,hm:true},
+  {name:'Vergiftete Wälder',icon:'🌲',desc:'Uralte Bäume flüstern. Giftige Kreaturen lauern.',diff:'Schwer',ml:4,wc:45,xp:[78,130],g:[58,118],lt:2,hm:false},
+  {name:'Blutige Ruinen',icon:'🩸',desc:'Eine einst stolze Burg, nun getränkt mit altem Blut.',diff:'Schwer',ml:3,wc:48,xp:[70,120],g:[50,110],lt:2,hm:false},
+  {name:'Kristallgefängnis',icon:'🔷',desc:'Gefangen in Kristall — doch etwas bewacht die Kammern.',diff:'Schwer',ml:4,wc:46,xp:[80,135],g:[60,120],lt:2,hm:false},
+  {name:'Tempel des Vergessens',icon:'🏛️',desc:'Uralte Fallen und Rätsel lauern hinter jedem Schritt.',diff:'Sehr Schwer',ml:5,wc:38,xp:[95,175],g:[75,195],lt:3,hm:true},
+  {name:'Schattennekropole',icon:'🪦',desc:'Stadt der Toten. Liches und Geisterfürsten regieren.',diff:'Sehr Schwer',ml:5,wc:35,xp:[105,185],g:[85,210],lt:3,hm:false},
+  {name:'Drachenhort',icon:'🐉',desc:'Drachenfürst Varakthos. Sein Atem verbrennt Stahl.',diff:'Sehr Schwer',ml:5,wc:35,xp:[118,198],g:[98,295],lt:3,hm:true},
+  {name:'Arkaneum der Verdammnis',icon:'🔮',desc:'Verbotene Magie. Zauber wirken chaotisch.',diff:'Sehr Schwer',ml:6,wc:32,xp:[125,210],g:[105,280],lt:3,hm:false},
+  {name:'Sanduhr des Vergessens',icon:'⏳',desc:'Zeit ist gebrochen. Vergangenheit und Zukunft mischen sich.',diff:'Sehr Schwer',ml:6,wc:30,xp:[130,220],g:[110,290],lt:3,hm:false},
+  {name:'Titanengruft',icon:'⚙️',desc:'Uralte mechanische Wächter. Kein Rost, keine Gnade.',diff:'Sehr Schwer',ml:7,wc:28,xp:[150,250],g:[130,320],lt:3,hm:true},
+  {name:'Hexenwald',icon:'🌙',desc:'Hexen wirken dunkle Rituale unter dem Mondlicht.',diff:'Sehr Schwer',ml:6,wc:33,xp:[120,200],g:[100,270],lt:3,hm:false},
+  {name:'Abyssusturm',icon:'🌑',desc:'Jenseits des Schleiers. Stille treibt in den Wahnsinn.',diff:'Legendär',ml:8,wc:22,xp:[195,390],g:[195,590],lt:3,hm:false},
+  {name:'Herz der Verdammnis',icon:'❤️‍🔥',desc:'Das Fundament der Welt zittert. Nur die Stärksten kehrten zurück.',diff:'Legendär',ml:8,wc:18,xp:[245,495],g:[295,795],lt:4,hm:true},
+  {name:'Götterruine',icon:'⚡',desc:'Wo einst Götter stritten. Überreste unvorstellbarer Macht.',diff:'Legendär',ml:10,wc:14,xp:[350,600],g:[400,900],lt:4,hm:false},
+  {name:'Scherbe der Schöpfung',icon:'🌟',desc:'Ein Riss im Gewebe der Welt. Was hier wartet übersteigt jedes Verständnis.',diff:'Legendär',ml:12,wc:10,xp:[500,800],g:[600,1200],lt:4,hm:true},
+];
+const QUESTS=[
+  {name:'Die verlorene Klinge',icon:'⚔️',desc:'Ein alter Krieger sucht seine legendäre Klinge in verfluchten Ruinen.',reward:{gold:80,xp:60},wc:65},
+  {name:'Koboldreinigung',icon:'👺',desc:'Das Dorf Eisendorf wird von Kobolden terrorisiert. Befreie sie!',reward:{gold:50,xp:40},wc:75},
+  {name:'Das gestohlene Grimoire',icon:'📖',desc:'Ein Zauberbuch voll verbotenem Wissen wurde gestohlen.',reward:{gold:90,xp:70,item:true},wc:58},
+  {name:'Jagd auf den Schwarzbären',icon:'🐻',desc:'Ein riesiger Schwarzbär terrorisiert die nördlichen Wälder.',reward:{gold:60,xp:50},wc:68},
+  {name:'Ruinen von Valdrath',icon:'🏚',desc:'Uralte Ruinen wurden entdeckt. Bringe Relikte zurück.',reward:{gold:100,xp:80,item:true},wc:52},
+  {name:'Dämonenschrein zerstören',icon:'😈',desc:'Ein verborgener Schrein muss vernichtet werden bevor er aufgeht.',reward:{gold:120,xp:100,item:true},wc:45},
+  {name:'Rettung der Geiseln',icon:'⛓️',desc:'Mehrere Bürger wurden von Banditen entführt.',reward:{gold:70,xp:55},wc:62},
+  {name:'Das Flüstern im Wald',icon:'🌲',desc:'Seltsame Stimmen kommen aus dem alten Wald. Schließe das Portal.',reward:{gold:85,xp:75,item:true},wc:50},
+];
+const FATE_EVENTS=[
+  {id:'blutmond',name:'🩸 Blutmond',cls:'fblut',desc:'Gegner stärker, aber bessere Item-Drops.',fx:{enemy_hearts:1,loot_rare:true,win_pen:-8},dur:4},
+  {id:'golden',name:'✨ Gold.Stunde',cls:'fgold',desc:'Händler haben seltenere Waren. Mehr Gold.',fx:{gold_mult:1.5,shop_rare:true},dur:3},
+  {id:'souls',name:'👻 Vl.Seelen',cls:'fsoul',desc:'Dungeons haben zusätzliche Schatzräume.',fx:{extra_loot:1},dur:4},
+  {id:'curse',name:'💜 Fluch',cls:'fcurs',desc:'Glück geschwächt, XP verdoppelt.',fx:{luck_pen:5,xp_mult:2},dur:3},
+  {id:'feast',name:'🎉 Götterfest',cls:'ffst',desc:'Alle Stats steigen kurz.',fx:{all_stats:2},dur:2},
+];
+const BLESSINGS=[
+  {id:'atk',name:'Kriegssegen',icon:'⚔️',desc:'+5 Angriff für 5 Orte',stat:'atk',val:5,dur:5},
+  {id:'def',name:'Schildsegen',icon:'🛡',desc:'+4 Verteidigung für 5 Orte',stat:'def',val:4,dur:5},
+  {id:'luck',name:'Glückssegen',icon:'🍀',desc:'+8 Glück für 6 Orte',stat:'luck',val:8,dur:6},
+  {id:'gold',name:'Reichtumssegen',icon:'💰',desc:'Doppeltes Gold (4 Dungeons)',special:'double_gold',dur:4},
+  {id:'rare',name:'Rarität-Segen',icon:'💎',desc:'Bessere Drops (5 Orte)',special:'rare_boost',dur:5},
+  {id:'heal',name:'Heilsegen',icon:'❤️',desc:'+1 Herz nach Sieg (6 Orte)',special:'auto_heal',dur:6},
+  {id:'win',name:'Schicksalssegen',icon:'✨',desc:'+10% Siegchance (4 Dungeons)',special:'win_boost',dur:4},
+];
+const MERCH_NAMES=['Wandernder Gildenhändler','Mysteriöser Krämer','Alte Hehlerfrau','Reisender Kaufmann','Flüchtiger Händler'];
+const DEMON_NAMES=["Zar'ak der Zerstörer","Malachar Rüstungsfeind","Vorgath das Grauen","Nexus Entweicher","Daemon Brutalis"];
+// ══════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════
+let gs={cls:null,hero:{level:1,hearts:5,maxHearts:5,xp:0,xpNext:100,atk:10,def:5,luck:5,gold:50,steps:0},
+  equipped:{},bag:Array(20).fill(null),currentLoc:null,lastLocType:null,history:[],
+  spinning:false,blessings:[],fateEvent:null,dungMerchItems:null,
+  smithSel:[],smithRarity:null,smithPendingIdx:[],
+  quest:null,questPhase:0,mustRetry:false,pendingMystic:null};
+let pendingLoot=[];
+// ══════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════
+const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const rc=r=>RC[r]||'rc';
+function getRarity(boost,noMys){
+  let c=Object.fromEntries(Object.entries(RARITIES).map(([k,v])=>[k,v.ch]));
+  if(boost||gs.blessings.find(b=>b.special==='rare_boost')){c.rare+=7;c.epic+=3;c.legendary+=1;c.common-=11;}
+  if(gs.cls?.id==='ranger'&&!noMys){c.rare+=5;c.common-=5;}
+  if(gs.fateEvent?.fx.loot_rare){c.rare+=5;c.epic+=2;c.common-=7;}
+  const tot=Object.values(c).reduce((a,b)=>a+b,0);
+  let r=Math.random()*tot,cum=0;
+  for(const[k,v]of Object.entries(c)){cum+=v;if(r<cum)return k;}
+  return'common';
+}
+function mkItem(slotId,forceRar,slots){
+  const avail=slots||gs.cls?.slots||ALL_SLOTS.map(s=>s.id);
+  const sid=avail.includes(slotId)?slotId:pick(avail);
+  const rar=forceRar||getRarity();
+  const rng=STAT_RANGES[rar]||STAT_RANGES.common;
+  const slot=ALL_SLOTS.find(s=>s.id===sid)||ALL_SLOTS[0];
+  const ni=RO.indexOf(rar);
+  const names=INAMES[sid]||INAMES.weapon;
+  return{slotId:sid,name:names[ni]||names[0],rarity:rar,icon:slot.icon,stat:slot.stat,statVal:R(rng.min,rng.max),bonus:Math.random()<.24?R(1,4):0};
+}
+function mkLoot(count){
+  const extra=gs.fateEvent?.fx.extra_loot||0;
+  const avail=gs.cls?.slots||ALL_SLOTS.map(s=>s.id);
+  // 2% mystic chance
+  if(Math.random()<0.02){
+    const ms=pick(MYSTIC_ITEMS);
+    const slot=avail.find(s=>ALL_SLOTS.find(x=>x.id===s&&x.stat===ms.stat))||avail[0];
+    const slotData=ALL_SLOTS.find(s=>s.id===slot)||ALL_SLOTS[0];
+    return[{slotId:slot,name:ms.name,rarity:'mystic',icon:ms.icon,stat:ms.stat,statVal:ms.statVal,bonus:0,mysticId:ms.id,mysticBonus:ms.bonus}];
+  }
+  const items=[];
+  const dbl=gs.blessings.find(b=>b.id==='star_mantle')&&Math.random()<.1;
+  const total=count+extra+(dbl?1:0);
+  for(let i=0;i<total;i++){const s=pick(avail);items.push(mkItem(s,null,avail));}
+  return items;
+}
+function h2r(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return r+','+g+','+b;}
+// ══════════════════════════════════════════════════
+// CLASS SELECT
+// ══════════════════════════════════════════════════
+function initCS(){
+  const g=document.getElementById('csGrid');
+  CLASSES.forEach(cls=>{
+    const d=document.createElement('div');d.className='clsc';
+    const snames=cls.slots.map(id=>ALL_SLOTS.find(s=>s.id===id)?.name||id);
+    d.innerHTML='<span class="clsc-ico">'+cls.icon+'</span><div class="clsc-nm">'+cls.name+'</div><div class="clsc-ds">'+cls.desc+'</div><div class="clsc-slots"><b>Ausrüstung:</b><br>'+snames.slice(0,8).map(n=>'<span>'+n+'</span>').join('')+(snames.length>8?'<span>+'+( snames.length-8)+' mehr</span>':'')+'</div><div class="clsc-bonus">✦ '+cls.bonus+'</div>';
+    d.addEventListener('click',()=>startGame(cls));
+    g.appendChild(d);
+  });
+}
+function startGame(cls){
+  gs.cls=cls;
+  gs.hero={level:1,hearts:cls.stats.hearts,maxHearts:cls.stats.hearts,xp:0,xpNext:100,atk:cls.stats.atk,def:cls.stats.def,luck:cls.stats.luck,gold:50,steps:0};
+  document.getElementById('csOv').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('portrait').textContent=cls.portrait;
+  document.getElementById('hname').textContent='Arathos der '+cls.name;
+  const wepSlots=['weapon','dagger','staff','bow','axe','hammer'];
+  const wepId=cls.slots.find(s=>wepSlots.includes(s))||'weapon';
+  const defSlots=['helm','mask','chest','coat'];
+  const defId=cls.slots.find(s=>defSlots.includes(s));
+  equipItem(mkItem(wepId,'common',[wepId]));
+  if(defId)equipItem(mkItem(defId,'common',[defId]));
+  addLog('Klasse: '+cls.name+' gewählt! Willkommen!','lo');
+  renderJourney();render();
+}
+// ══════════════════════════════════════════════════
+// LOCATIONS
+// ══════════════════════════════════════════════════
+function pickLocType(){
+  if(gs.mustRetry)return'dungeon_retry';
+  const last=gs.lastLocType;
+  const w=[];
+  w.push({t:'dungeon',w:52});
+  if(last!=='merchant'&&last!=='smith'){w.push({t:'merchant',w:11});w.push({t:'smith',w:9});}
+  else if(last==='merchant')w.push({t:'smith',w:9});
+  else w.push({t:'merchant',w:11});
+  w.push({t:'deity',w:5});w.push({t:'quest',w:11});w.push({t:'demon',w:9});
+  const tot=w.reduce((a,x)=>a+x.w,0);
+  let r=Math.random()*tot,cum=0;
+  for(const{t,w:ww}of w){cum+=ww;if(r<cum)return t;}
+  return'dungeon';
+}
+function buildLoc(type){
+  if(type==='dungeon_retry'){gs.mustRetry=false;return{...gs.currentLoc,_retry:true};}
+  if(type==='dungeon'){const pool=DUNGEONS.filter(d=>d.ml<=gs.hero.level+2);const d=pick(pool.length?pool:DUNGEONS.slice(0,4));return{type:'dungeon',...d};}
+  if(type==='merchant'){const n=pick(MERCH_NAMES);return{type:'merchant',name:n,icon:'🛒',desc:'Ein reisender Händler hat sein Lager aufgeschlagen. Waren glänzen im Fackelschein.'};}
+  if(type==='smith')return{type:'smith',name:'Schmiede',icon:'⚒',desc:'Der Hammer klingt hell. Hier können Items zu mächtigeren Gegenständen verschmolzen werden.'};
+  if(type==='deity'){const n=pick(['Der Namenlose','Shira, Göttin des Lichts','Vorthax, Gott des Krieges','Aracne, Weberin der Fäden']);return{type:'deity',name:n,icon:'✨',desc:n+' erscheint in blendendem Licht. Eine Kraft jenseits der Zeit umgibt dich.'};}
+  if(type==='quest'){const q=pick(QUESTS);gs.quest=q;gs.questPhase=0;return{type:'quest',name:q.name,icon:q.icon,desc:q.desc};}
+  if(type==='demon'){const n=pick(DEMON_NAMES);return{type:'demon',name:n,icon:'😈',desc:n+' steigt aus dem Abyssal auf!'};}
+}
+function travel(){
+  if(gs.spinning)return;
+  tickBlessings();maybeRollFate();
+  const type=pickLocType();
+  const loc=buildLoc(type);
+  gs.currentLoc=loc;
+  if(!loc._retry)gs.lastLocType=type;
+  gs.hero.steps++;
+  setTravel(false);
+  showReveal(loc);
+}
+function setTravel(v){document.getElementById('trbtn').style.display=v?'':'none';}
+function tickBlessings(){
+  gs.blessings=gs.blessings.filter(b=>{b.stepsLeft--;
+    if(b.stepsLeft<=0){if(b.stat)gs.hero[b.stat]=Math.max(1,gs.hero[b.stat]-b.val);addLog('Segen "'+b.name+'" abgelaufen.','lp');return false;}return true;});
+  if(gs.fateEvent){gs.fateEvent.stepsLeft--;
+    if(gs.fateEvent.stepsLeft<=0){
+      const fx=gs.fateEvent.fx;
+      if(fx.all_stats){gs.hero.atk-=fx.all_stats;gs.hero.def-=fx.all_stats;gs.hero.luck-=fx.all_stats;}
+      if(fx.luck_pen)gs.hero.luck+=fx.luck_pen;
+      addLog('Ereignis "'+gs.fateEvent.name+'" endet.','lp');
+      gs.fateEvent=null;
+      document.getElementById('hdrEv').style.display='none';
+      document.getElementById('fateBar').style.display='none';
+    }
+  }
+}
+function maybeRollFate(){
+  if(gs.fateEvent||Math.random()>=0.11)return;
+  const ev=pick(FATE_EVENTS);
+  gs.fateEvent={...ev,stepsLeft:ev.dur};
+  const fx=ev.fx;
+  if(fx.all_stats){gs.hero.atk+=fx.all_stats;gs.hero.def+=fx.all_stats;gs.hero.luck+=fx.all_stats;}
+  if(fx.luck_pen)gs.hero.luck=Math.max(1,gs.hero.luck-fx.luck_pen);
+  addLog('✨ EREIGNIS: '+ev.name+'! '+ev.desc,'lp');
+  const hdr=document.getElementById('hdrEv');hdr.textContent=ev.name;
+  hdr.style.borderColor=ev.cls.includes('blut')||ev.cls.includes('curs')?'#8b0000':ev.cls.includes('gold')||ev.cls.includes('fst')?'var(--gold)':'var(--pur)';
+  hdr.style.display='block';
+  const bar=document.getElementById('fateBar');bar.className='fate-bar '+ev.cls;
+  bar.innerHTML='<b>'+ev.name+'</b> — '+ev.desc+' <span style="color:var(--dim);font-size:.8em">('+ev.dur+' Schritte)</span>';
+  bar.style.display='block';
+}
+function showFateInfo(){if(gs.fateEvent)addLog('Ereignis: '+gs.fateEvent.name+' ('+gs.fateEvent.stepsLeft+' Schritte)','lp');}
+// ══════════════════════════════════════════════════
+// REVEAL
+// ══════════════════════════════════════════════════
+function showReveal(loc){
+  document.getElementById('revi').textContent=loc.icon;
+  document.getElementById('revnm').textContent=loc._retry?loc.name+' (Retry)':loc.name;
+  const tl={dungeon:'⚔ Dungeon',merchant:'🛒 Händler',smith:'⚒ Schmied',deity:'✨ Höheres Wesen',quest:'📜 Quest',demon:'😈 Dämon-Event'};
+  document.getElementById('revty').textContent=tl[loc.type]||loc.type;
+  document.getElementById('revds').textContent=loc.desc;
+  const art=document.getElementById('revart');
+  if(loc.type==='dungeon'){art.style.display='block';drawDungArt();}else art.style.display='none';
+  document.getElementById('revOv').classList.add('open');
+}
+function drawDungArt(){
+  const c=document.getElementById('revart'),ctx=c.getContext('2d'),W=380,H=80;
+  ctx.clearRect(0,0,W,H);
+  const g=ctx.createLinearGradient(0,0,W,0);g.addColorStop(0,'#04040a');g.addColorStop(.5,'#0a0814');g.addColorStop(1,'#04040a');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(201,168,76,.44)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(W/2,H,56,Math.PI,0);ctx.stroke();
+  ctx.strokeStyle='rgba(201,168,76,.17)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(W/2,H,46,Math.PI,0);ctx.stroke();
+  const ig=ctx.createRadialGradient(W/2,H,0,W/2,H,56);ig.addColorStop(0,'rgba(0,0,0,.97)');ig.addColorStop(1,'transparent');
+  ctx.fillStyle=ig;ctx.beginPath();ctx.arc(W/2,H,56,Math.PI,0);ctx.fill();
+  for(let i=0;i<11;i++){const x=R(W/2-48,W/2+48),y=R(10,76),a=Math.random()*.7+.1;ctx.beginPath();ctx.arc(x,y,1.3,0,Math.PI*2);ctx.fillStyle='rgba(201,168,76,'+a+')';ctx.fill();}
+  [[W/2-65,58],[W/2+65,58]].forEach(([x,y])=>{
+    ctx.fillStyle='rgba(201,168,76,.68)';ctx.fillRect(x-2,y,4,9);
+    const tg=ctx.createRadialGradient(x,y,0,x,y,16);tg.addColorStop(0,'rgba(255,140,0,.28)');tg.addColorStop(1,'transparent');
+    ctx.fillStyle=tg;ctx.beginPath();ctx.arc(x,y,16,0,Math.PI*2);ctx.fill();
+  });
+}
+function closeReveal(){document.getElementById('revOv').classList.remove('open');applyLoc(gs.currentLoc);}
+function applyLoc(loc){
+  if(!loc._retry){gs.history.unshift({type:loc.type,name:loc.name,icon:loc.icon});if(gs.history.length>4)gs.history.pop();}
+  updateLocCard(loc);renderJourney();
+  document.getElementById('wpnl').style.display='none';
+  document.getElementById('questPnl').style.display='none';
+  if(loc.type==='dungeon')setupDungeon(loc);
+  else if(loc.type==='merchant')setTimeout(()=>openMerc(false),200);
+  else if(loc.type==='smith')setTimeout(()=>openSmith(),200);
+  else if(loc.type==='deity')setTimeout(()=>openDeity(),200);
+  else if(loc.type==='quest')setTimeout(()=>setupQuest(),200);
+  else if(loc.type==='demon')setTimeout(()=>triggerDemon(),200);
+  render();
+}
+function updateLocCard(loc){
+  document.getElementById('lico').textContent=loc.icon;
+  document.getElementById('lnm').textContent=loc.name;
+  document.getElementById('ldsc').textContent=loc.desc;
+  document.getElementById('lbg').textContent=loc.icon;
+  const chips=document.getElementById('lchips');
+  if(loc.type==='dungeon'){
+    const wc=effWin(loc);
+    chips.innerHTML='<div class="chip"><div class="cv">'+loc.diff+'</div><div>Schwierigkeit</div></div><div class="chip"><div class="cv" style="color:var(--grn)">'+wc+'%</div><div>Siegchance</div></div><div class="chip"><div class="cv" style="color:var(--gold)">'+loc.g[0]+'-'+loc.g[1]+'</div><div>Gold</div></div>';
+  }else chips.innerHTML='';
+}
+function effWin(loc){
+  let b=Math.floor(gs.hero.luck/5);
+  if(gs.cls?.id==='rogue')b*=2;
+  if(gs.cls?.id==='mage')b+=Math.floor(gs.hero.luck/10)*3;
+  if(gs.blessings.find(x=>x.special==='win_boost'))b+=10;
+  if(gs.fateEvent?.fx.win_pen)b+=gs.fateEvent.fx.win_pen;
+  if(Object.values(gs.equipped).find(i=>i.mysticId==='cosmos_blade'))b+=20;
+  return Math.min(95,Math.max(5,(loc.wc||50)+b));
+}
+// ══════════════════════════════════════════════════
+// DUNGEON
+// ══════════════════════════════════════════════════
+function setupDungeon(loc){
+  document.getElementById('wpnl').style.display='flex';
+  document.getElementById('spinBtn').disabled=false;
+  document.getElementById('rban').style.display='none';
+  document.getElementById('dmBtn').style.display='none';
+  const hasTimeShard=Object.values(gs.equipped).find(i=>i.mysticId==='time_shard');
+  gs.dungMerchItems=(loc.hm||hasTimeShard)?genShopItems():null;
+  drawWheel('mainWheel',effWin(loc));
+  addLog('Du betrittst: '+loc.name+(loc._retry?' (nochmal)':''),'li');
+}
+function doSpin(){
+  if(gs.spinning||!gs.currentLoc)return;
+  gs.spinning=true;
+  document.getElementById('spinBtn').disabled=true;
+  document.getElementById('rban').style.display='none';
+  const loc=gs.currentLoc,wc=effWin(loc);
+  const win=Math.random()*100<wc;
+  spinWheel('mainWheel',win,()=>{gs.spinning=false;showDungResult(win,loc);});
+}
+function showDungResult(win,loc){
+  const ban=document.getElementById('rban');
+  if(win){
+    ban.className='rban win';ban.textContent='⚔ SIEG! Der Dungeon ist bezwungen!';ban.style.display='block';
+    let gm=gs.blessings.find(b=>b.special==='double_gold')?2:1;
+    if(gs.fateEvent?.fx.gold_mult)gm*=gs.fateEvent.fx.gold_mult;
+    const xp=Math.floor(R(loc.xp[0],loc.xp[1])*(gs.fateEvent?.fx.xp_mult||1));
+    const gld=Math.floor(R(loc.g[0],loc.g[1])*gm);
+    gs.hero.xp+=xp;gs.hero.gold+=gld;
+    addLog('Sieg in '+loc.name+'! +'+xp+' XP, +'+gld+' Gold','lg');
+    if(gs.blessings.find(b=>b.special==='auto_heal')&&gs.hero.hearts<gs.hero.maxHearts){
+      const bonus=gs.cls?.id==='paladin'?2:1;
+      gs.hero.hearts=Math.min(gs.hero.maxHearts,gs.hero.hearts+bonus);
+      addLog('Heilsegen: +'+bonus+' Herz','lg');
+    }
+    if(Object.values(gs.equipped).find(i=>i.mysticId==='soul_chain')&&gs.hero.hearts<gs.hero.maxHearts){gs.hero.hearts=Math.min(gs.hero.maxHearts,gs.hero.hearts+1);addLog('Seelenkette: +1 Herz','lm');}
+    checkLevelUp();
+    const loot=mkLoot(loc.lt);
+    if(loot.length&&loot[0].rarity==='mystic'){gs.pendingMystic=loot[0];setTimeout(()=>showMysticModal(),480);}
+    else setTimeout(()=>showLootModal(loot),480);
+    if(gs.dungMerchItems)document.getElementById('dmBtn').style.display='inline-block';
+  }else{
+    ban.className='rban lose';
+    let dmg=1+(gs.fateEvent?.fx.enemy_hearts||0);
+    if(gs.cls?.id==='paladin'&&Math.random()<.3)dmg=Math.max(0,dmg-1);
+    if(gs.cls?.id==='warrior'&&Math.random()<.3)dmg=Math.max(1,dmg-1);
+    if(gs.cls?.id==='necro'&&Math.random()<.1)dmg=0;
+    if(gs.hero.def>=20&&Math.random()<.4)dmg=Math.max(0,dmg-1);
+    loseHearts(dmg);
+    ban.textContent='💀 Niederlage! −'+dmg+' Herz'+(dmg!==1?'en':'')+'. Du musst diesen Dungeon erneut versuchen!';
+    ban.style.display='block';
+    addLog('Niederlage in '+loc.name+'! −'+dmg+' Herz. Retry!','lb');
+    gs.mustRetry=true;
+  }
+  setTravel(true);render();
+}
+function openDungMerch(){if(gs.dungMerchItems)openMerc(true);}
+function checkLevelUp(){
+  while(gs.hero.xp>=gs.hero.xpNext){
+    gs.hero.xp-=gs.hero.xpNext;gs.hero.level++;gs.hero.xpNext=Math.floor(gs.hero.xpNext*1.5);
+    gs.hero.maxHearts=Math.min(10,gs.hero.maxHearts+1);gs.hero.hearts=gs.hero.maxHearts;
+    gs.hero.atk+=2;gs.hero.def+=1;gs.hero.luck+=1;
+    addLog('🎉 LEVEL UP! Stufe '+gs.hero.level+'! Stats+1 +1 Herz!','lo');
+  }
+}
+function loseHearts(n){
+  for(let i=0;i<n&&gs.hero.hearts>0;i++)gs.hero.hearts--;
+  render();
+  if(gs.hero.hearts<=0){gs.hero.hearts=0;render();gameOver();}
+}
+function gameOver(){
+  document.getElementById('goS').textContent='Arathos der '+gs.cls.name+' ist in den Dungeons gefallen...';
+  document.getElementById('goStats').textContent='Stufe '+gs.hero.level+' · '+gs.hero.steps+' Schritte · '+gs.hero.gold+' Gold';
+  document.getElementById('goOv').classList.add('open');
+}
+// ══════════════════════════════════════════════════
+// MYSTIC MODAL
+// ══════════════════════════════════════════════════
+function showMysticModal(){
+  const it=gs.pendingMystic;if(!it)return;
+  const ms=MYSTIC_ITEMS.find(m=>m.id===it.mysticId)||{bonus:'Unbekannter Segen'};
+  const sn={atk:'Angriff',def:'Verteidigung',luck:'Glück'}[it.stat];
+  document.getElementById('mysBox').innerHTML='<div class="mys-ico">'+it.icon+'</div><div class="mys-nm">'+it.name+'</div><div style="font-size:.8em;color:var(--mys);margin:3px 0">+'+it.statVal+' '+sn+'</div><div class="mys-ds">✦ '+ms.bonus+'</div>';
+  document.getElementById('mysMbd').classList.add('open');
+  launchConfetti('#e040fb');
+}
+function takeMystic(){const it=gs.pendingMystic;if(!it)return;document.getElementById('mysMbd').classList.remove('open');equipOrBag(it);addLog('✦ MYSTISCH: '+it.name+' erhalten!','lm');gs.pendingMystic=null;render();}
+function rejectMystic(){document.getElementById('mysMbd').classList.remove('open');addLog('Mystisches Item abgelehnt.','lm');gs.pendingMystic=null;}
+// ══════════════════════════════════════════════════
+// CONFETTI
+// ══════════════════════════════════════════════════
+function launchConfetti(mainColor){
+  const cv=document.getElementById('cvcv');cv.width=window.innerWidth;cv.height=window.innerHeight;cv.style.display='block';
+  const ctx=cv.getContext('2d');
+  const colors=mainColor==='#e040fb'?['#e040fb','#ce93d8','#f48fb1','#fff','#b39ddb']:mainColor==='#8e44ad'?['#8e44ad','#c39bd3','#e0a0ff','#fff','#pur']:['#c9a84c','#f0d080','#fff','#8e44ad','#2980b9'];
+  const pp=[];
+  for(let i=0;i<150;i++)pp.push({x:Math.random()*cv.width,y:-10-Math.random()*220,vx:(Math.random()-.5)*6,vy:Math.random()*4+3,sz:R(5,12),color:colors[Math.floor(Math.random()*colors.length)],rot:Math.random()*360,vr:(Math.random()-.5)*8,alpha:1});
+  let fr=0;
+  function loop(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    pp.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;p.alpha=Math.max(0,1-fr/120);
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);ctx.globalAlpha=p.alpha;
+      ctx.fillStyle=p.color;ctx.fillRect(-p.sz/2,-p.sz/4,p.sz,p.sz/2);ctx.restore();
+    });
+    fr++;if(fr<130)requestAnimationFrame(loop);else cv.style.display='none';
+  }
+  requestAnimationFrame(loop);
+}
+// ══════════════════════════════════════════════════
+// WHEEL ENGINE
+// ══════════════════════════════════════════════════
+function drawWheel(id,winPct,segsOverride,rot){
+  rot=rot||0;
+  const cv=document.getElementById(id);if(!cv)return;
+  const ctx=cv.getContext('2d'),CX=93,CY=93,R2=90;
+  ctx.clearRect(0,0,186,186);
+  let segs=segsOverride;
+  if(!segs){
+    const n=8;let ws=Math.round(winPct/100*n);ws=Math.max(1,Math.min(n-1,ws));
+    segs=[];
+    for(let i=0;i<ws;i++)segs.push({win:true,label:['SIEG!','✓ SIEG','TRIUMPH'][i%3],color:['#27ae60','#2ecc71','#1abc9c'][i%3]});
+    for(let i=0;i<n-ws;i++)segs.push({win:false,label:['Nein','✗ Los','Pech!'][i%3],color:['#c0392b','#e74c3c','#922b21'][i%3]});
+    for(let i=segs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[segs[i],segs[j]]=[segs[j],segs[i]];}
+  }
+  cv._segs=segs;
+  const arc=(2*Math.PI)/segs.length;
+  segs.forEach((s,i)=>{
+    const st=rot+i*arc-Math.PI/2,en=st+arc;
+    ctx.beginPath();ctx.moveTo(CX,CY);ctx.arc(CX,CY,R2,st,en);ctx.closePath();
+    ctx.fillStyle=s.color;ctx.fill();ctx.strokeStyle='#0a0806';ctx.lineWidth=2;ctx.stroke();
+    ctx.save();ctx.translate(CX,CY);ctx.rotate(st+arc/2);ctx.textAlign='right';ctx.fillStyle='#fff';
+    ctx.font='bold 8px Cinzel,serif';ctx.shadowColor='rgba(0,0,0,.8)';ctx.shadowBlur=3;
+    ctx.fillText(s.label,R2-4,3);ctx.restore();
+  });
+  ctx.beginPath();ctx.arc(CX,CY,R2,0,2*Math.PI);ctx.strokeStyle='#c9a84c';ctx.lineWidth=3;ctx.stroke();
+}
+function spinWheel(id,win,cb){
+  const cv=document.getElementById(id);if(!cv||!cv._segs)return;
+  const segs=cv._segs,arc=360/segs.length;
+  const match=segs.map((s,i)=>({...s,i})).filter(s=>s.win===win);
+  const chosen=pick(match.length?match:segs.map((s,i)=>({...s,i})));
+  const tgt=360-(chosen.i*arc+arc/2);
+  const totalRad=((5+R(0,3))*360+tgt)*Math.PI/180;
+  const t0=performance.now(),dur=3400;
+  function anim(now){
+    const p=Math.min((now-t0)/dur,1),ease=1-Math.pow(1-p,4),rot=ease*totalRad;
+    drawWheelFrame(id,rot%(2*Math.PI));
+    if(p<1)requestAnimationFrame(anim);else cb();
+  }
+  requestAnimationFrame(anim);
+}
+function drawWheelFrame(id,rot){
+  const cv=document.getElementById(id);if(!cv||!cv._segs)return;
+  const ctx=cv.getContext('2d'),CX=93,CY=93,R2=90,segs=cv._segs,arc=(2*Math.PI)/segs.length;
+  ctx.clearRect(0,0,186,186);
+  segs.forEach((s,i)=>{
+    const st=rot+i*arc-Math.PI/2,en=st+arc;
+    ctx.beginPath();ctx.moveTo(CX,CY);ctx.arc(CX,CY,R2,st,en);ctx.closePath();
+    ctx.fillStyle=s.color;ctx.fill();ctx.strokeStyle='#0a0806';ctx.lineWidth=2;ctx.stroke();
+    ctx.save();ctx.translate(CX,CY);ctx.rotate(st+arc/2);ctx.textAlign='right';ctx.fillStyle='#fff';
+    ctx.font='bold 8px Cinzel,serif';ctx.shadowColor='rgba(0,0,0,.8)';ctx.shadowBlur=3;
+    ctx.fillText(s.label,R2-4,3);ctx.restore();
+  });
+  ctx.beginPath();ctx.arc(CX,CY,R2,0,2*Math.PI);ctx.strokeStyle='#c9a84c';ctx.lineWidth=3;ctx.stroke();
+}
+// ══════════════════════════════════════════════════
+// LOOT MODAL — pick exactly 1
+// ══════════════════════════════════════════════════
+function showLootModal(items){
+  if(!items||!items.length)return;
+  pendingLoot=[...items];
+  document.getElementById('lootTitle').textContent='⚔ Beute! ('+items.length+' Optionen)';
+  const g=document.getElementById('lootOpts');g.innerHTML='';
+  items.forEach(it=>{
+    const div=document.createElement('div');div.className='lopt';
+    div.style.borderColor=RARITIES[it.rarity]?.color||'#aaa';
+    const sn={atk:'Angriff',def:'Verteidigung',luck:'Glück'}[it.stat];
+    div.innerHTML='<div class="ln '+rc(it.rarity)+'">'+it.icon+' '+it.name+'</div><div class="ls">+'+it.statVal+' '+sn+(it.bonus>0?' +'+it.bonus+' Bonus':'')+'</div><div class="ls">'+(RARITIES[it.rarity]?.name||it.rarity)+'</div>';
+    div.addEventListener('click',()=>{
+      pendingLoot=[];
+      const rar=it.rarity;
+      equipOrBag(it);
+      document.getElementById('lootMbd').classList.remove('open');
+      if(rar==='epic')launchConfetti('#8e44ad');
+      else if(rar==='legendary')launchConfetti('#c9a84c');
+      render();
+    });
+    div.addEventListener('mouseenter',e=>showTT(e,it));div.addEventListener('mousemove',moveTT);div.addEventListener('mouseleave',hideTT);
+    g.appendChild(div);
+  });
+  document.getElementById('lootMbd').classList.add('open');
+}
+// ══════════════════════════════════════════════════
+// MERCHANT
+// ══════════════════════════════════════════════════
+function genShopItems(){
+  const cls=gs.cls,avail=cls?cls.slots:ALL_SLOTS.map(s=>s.id);
+  const items=[];
+  for(let i=0;i<6;i++){
+    const sid=pick(avail);
+    const r=getRarity(false,true);
+    const it=mkItem(sid,r,avail);
+    const p={common:14,uncommon:32,rare:78,epic:175,legendary:440};it.price=p[r]+R(-5,10);
+    items.push(it);
+  }
+  return items;
+}
+function openMerc(isDung){
+  const items=isDung?gs.dungMerchItems:genShopItems();
+  document.getElementById('mercTitle').textContent=isDung?'🕯 Dungeon-Händler':'🛒 '+gs.currentLoc.name;
+  document.getElementById('mercGold').textContent='Dein Gold: 🪙 '+gs.hero.gold;
+  buildShopGrid(items);
+  document.getElementById('mercMbd').classList.add('open');
+}
+function buildShopGrid(items){
+  const g=document.getElementById('sgrid');g.innerHTML='';
+  items.forEach(it=>{
+    const can=gs.hero.gold>=it.price;
+    const sn={atk:'Angriff',def:'Verteidigung',luck:'Glück'}[it.stat];
+    const d=document.createElement('div');d.className='si'+(can?'':' brk');
+    d.style.borderColor=RARITIES[it.rarity]?.color||'#aaa';
+    d.innerHTML='<div class="si-ico">'+it.icon+'</div><div class="si-nm '+rc(it.rarity)+'">'+it.name+'</div><div class="si-st">+'+it.statVal+' '+sn+'</div><div class="si-pr">🪙 '+it.price+'</div>';
+    if(can){
+      d.addEventListener('click',()=>{if(gs.hero.gold<it.price)return;gs.hero.gold-=it.price;document.getElementById('mercGold').textContent='Dein Gold: 🪙 '+gs.hero.gold;equipOrBag(it);d.style.opacity='.27';d.style.pointerEvents='none';addLog('Gekauft: '+it.name+' für '+it.price+'G','lo');render();});
+      d.addEventListener('mouseenter',e=>showTT(e,it));d.addEventListener('mousemove',moveTT);d.addEventListener('mouseleave',hideTT);
+    }
+    g.appendChild(d);
+  });
+}
+function closeMerc(){document.getElementById('mercMbd').classList.remove('open');if(gs.currentLoc?.type!=='dungeon')setTravel(true);render();}
+// ══════════════════════════════════════════════════
+// SMITH
+// ══════════════════════════════════════════════════
+function openSmith(){
+  gs.smithSel=[];gs.smithRarity=null;
+  renderSmithRar();renderSmithSlots();
+  document.getElementById('rtblRow').innerHTML='<td colspan="2" style="color:var(--dim);font-style:italic">— Seltenheit wählen —</td>';
+  document.getElementById('smithBtn').disabled=true;
+  document.getElementById('smithMbd').classList.add('open');
+}
+function renderSmithRar(){
+  const row=document.getElementById('srrow');row.innerHTML='';
+  RO.slice(0,-1).forEach(r=>{
+    const cnt=gs.bag.filter(i=>i&&i.rarity===r).length;
+    const b=document.createElement('div');b.className='srb'+(cnt<5?' dis':'');
+    b.style.borderColor=RARITIES[r].color;b.style.color=RARITIES[r].color;
+    if(gs.smithRarity===r)b.style.background='rgba('+h2r(RARITIES[r].color)+',.14)';
+    b.textContent=RARITIES[r].name+' ('+cnt+')';
+    if(cnt>=5)b.addEventListener('click',()=>{gs.smithRarity=r;gs.smithSel=[];renderSmithRar();renderSmithSlots();updateChTable();});
+    row.appendChild(b);
+  });
+}
+function updateChTable(){
+  const r=gs.smithRarity;if(!r||!SMITH_CHANCES[r])return;
+  const ch=SMITH_CHANCES[r];const tot=ch.reduce((a,b)=>a+b.p,0);const fp=Math.max(0,100-tot);
+  let html=ch.map(c=>'<tr><td class="'+rc(c.r)+'">'+RARITIES[c.r].name+'</td><td class="rp" style="color:'+RARITIES[c.r].color+'">'+c.p+'%</td></tr>').join('');
+  if(fp>0)html+='<tr><td class="'+rc(r)+'">'+RARITIES[r].name+' (gleich)</td><td class="rp" style="color:'+RARITIES[r].color+'">'+fp+'%</td></tr>';
+  document.getElementById('rtblRow').innerHTML=html;
+}
+function renderSmithSlots(){
+  const g=document.getElementById('smslts');g.innerHTML='';
+  const elig=gs.bag.map((it,i)=>({it,i})).filter(({it})=>it&&it.rarity===gs.smithRarity);
+  for(let i=0;i<5;i++){
+    const d=document.createElement('div');d.className='sms';
+    if(gs.smithSel[i]!==undefined){
+      const it=gs.bag[gs.smithSel[i]];
+      if(it){d.className+=' fi';d.style.borderColor=RARITIES[it.rarity].color;d.innerHTML='<span>'+it.icon+'</span>';
+        d.addEventListener('click',()=>{gs.smithSel.splice(i,1);renderSmithSlots();document.getElementById('smithBtn').disabled=gs.smithSel.length<5;});}
+    }else{
+      d.innerHTML='<span style="opacity:.2">+</span>';
+      const avail=elig.filter(({i:idx})=>!gs.smithSel.includes(idx));
+      if(avail.length)d.addEventListener('click',()=>{gs.smithSel.push(avail[0].i);renderSmithSlots();document.getElementById('smithBtn').disabled=gs.smithSel.length<5;});
+    }
+    g.appendChild(d);
+  }
+}
+function openSmithSpin(){
+  if(gs.smithSel.length<5)return;
+  gs.smithPendingIdx=[...gs.smithSel];
+  const r=gs.smithRarity;
+  const ch=SMITH_CHANCES[r]||[];
+  const tot=ch.reduce((a,b)=>a+b.p,0);const fp=Math.max(0,100-tot);
+  // Build rarity-colored wheel segs
+  const segs=[];
+  ch.forEach(c=>{const slots=Math.max(1,Math.round(c.p/100*8));for(let i=0;i<slots;i++)segs.push({win:c.r!==r,label:RARITIES[c.r].name,color:RARITIES[c.r].color,resultR:c.r});});
+  const failSlots=Math.max(1,8-segs.length);
+  for(let i=0;i<failSlots;i++)segs.push({win:false,label:RARITIES[r].name,color:RARITIES[r].color,resultR:r});
+  for(let i=segs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[segs[i],segs[j]]=[segs[j],segs[i]];}
+  document.getElementById('smithWheel')._segs=segs;
+  drawWheelFrame('smithWheel',0);
+  document.getElementById('smBan').style.display='none';
+  document.getElementById('smRes').style.display='none';
+  document.getElementById('smSpinBtn').disabled=false;
+  document.getElementById('smCloseBtn').style.display='none';
+  document.getElementById('smSpinDesc').textContent='Kombiniere 5x '+RARITIES[r]?.name+' Items — drehe das Rad um das Ergebnis zu bestimmen!';
+  document.getElementById('smSpinMbd').classList.add('open');
+  document.getElementById('smithMbd').classList.remove('open');
+}
+function doSmithSpin(){
+  document.getElementById('smSpinBtn').disabled=true;
+  const r=gs.smithRarity;const ch=SMITH_CHANCES[r]||[];
+  const tot=ch.reduce((a,b)=>a+b.p,0);const roll=Math.random()*100;
+  let resultR=r;let cum=0;
+  for(const c of ch){cum+=c.p;if(roll<cum){resultR=c.r;break;}}
+  const win=resultR!==r;
+  const cv=document.getElementById('smithWheel');
+  const segs=cv._segs;
+  const match=segs.map((s,i)=>({...s,i})).filter(s=>s.resultR===resultR);
+  const chosen=match.length?pick(match):segs.map((s,i)=>({...s,i}))[0];
+  const arc=360/segs.length;
+  const tgt=360-(chosen.i*arc+arc/2);
+  const totalRad=((5+R(0,3))*360+tgt)*Math.PI/180;
+  const t0=performance.now(),dur=3400;
+  function anim(now){
+    const p=Math.min((now-t0)/dur,1),ease=1-Math.pow(1-p,4),rot=ease*totalRad;
+    drawWheelFrame('smithWheel',rot%(2*Math.PI));
+    if(p<1)requestAnimationFrame(anim);else finishSmithSpin(resultR,win);
+  }
+  requestAnimationFrame(anim);
+}
+function finishSmithSpin(resultR,wasUp){
+  gs.smithPendingIdx.forEach(idx=>{gs.bag[idx]=null;});gs.smithPendingIdx=[];
+  const cls=gs.cls;const s=pick(cls?cls.slots:ALL_SLOTS.map(x=>x.id));
+  const res=mkItem(s,resultR,cls?.slots);
+  const bs=gs.bag.findIndex(x=>x===null);if(bs!==-1)gs.bag[bs]=res;
+  const sn={atk:'Angriff',def:'Verteidigung',luck:'Glück'}[res.stat];
+  const ban=document.getElementById('smBan');
+  ban.className=wasUp?'rban win':'rban lose';
+  ban.textContent=wasUp?'✨ Verbesserung! '+RARITIES[resultR]?.name+'!':'⚠ Gleiche Stufe: '+RARITIES[resultR]?.name;
+  ban.style.display='block';
+  document.getElementById('smRes').style.display='block';
+  document.getElementById('smRes').innerHTML='<div style="font-size:1.7em">'+res.icon+'</div><div class="'+rc(resultR)+'" style="font-family:\'Cinzel\',serif">'+res.name+'</div><div style="font-size:.77em;color:var(--dim)">+'+res.statVal+' '+sn+' · '+RARITIES[resultR]?.name+'</div>';
+  if(wasUp&&(resultR==='epic'||resultR==='legendary'))launchConfetti(resultR==='legendary'?'#c9a84c':'#8e44ad');
+  document.getElementById('smCloseBtn').style.display='inline-block';
+  addLog('⚒ Geschmiedet: '+res.name+' ('+RARITIES[resultR]?.name+')'+(wasUp?' ← Upgrade!':' (keine Verbesserung)'),'lo');
+  gs.smithRarity=null;render();
+}
+function closeSmithSpin(){document.getElementById('smSpinMbd').classList.remove('open');openSmith();}
+function closeSmith(){document.getElementById('smithMbd').classList.remove('open');if(gs.currentLoc?.type!=='dungeon')setTravel(true);}
+// ══════════════════════════════════════════════════
+// DEITY
+// ══════════════════════════════════════════════════
+function openDeity(){
+  document.getElementById('deityTitle').textContent='✨ '+gs.currentLoc.name;
+  document.getElementById('deityDesc').textContent='Das höhere Wesen wendet sich dir zu. Wähle einen Segen.';
+  const offered=[...BLESSINGS].sort(()=>Math.random()-.5).slice(0,3);
+  const list=document.getElementById('blslist');list.innerHTML='';
+  offered.forEach(b=>{
+    const d=document.createElement('div');d.className='bop';
+    d.innerHTML='<div class="bon">'+b.icon+' '+b.name+'</div><div class="bod">'+b.desc+'</div>';
+    d.addEventListener('click',()=>{if(b.stat)gs.hero[b.stat]+=b.val;gs.blessings.push({...b,stepsLeft:b.dur});addLog('✨ Segen: '+b.name,'lp');renderBlessings();closeDeity();render();});
+    list.appendChild(d);
+  });
+  document.getElementById('deityMbd').classList.add('open');
+}
+function closeDeity(){document.getElementById('deityMbd').classList.remove('open');setTravel(true);}
+// ══════════════════════════════════════════════════
+// DEMON
+// ══════════════════════════════════════════════════
+function triggerDemon(){
+  const eqs=Object.keys(gs.equipped);const dname=gs.currentLoc.name;
+  const dbox=document.getElementById('demonBox');
+  if(Object.values(gs.equipped).find(i=>i.mysticId==='death_crown')){
+    dbox.innerHTML='<div class="dtit">😈 '+dname+'</div><div style="color:var(--dim);font-size:.83em">Die Krone des Todes schützt dich! Der Dämon zieht sich zurück.</div>';
+    document.getElementById('demonDesc').textContent='Deine mystische Rüstung hält den Dämon auf Abstand!';
+    addLog('Krone des Todes: Dämon abgewehrt!','lm');
+  }else if(eqs.length===0){
+    dbox.innerHTML='<div class="dtit">😈 '+dname+'</div><div style="color:var(--dim);font-size:.83em">Keine Ausrüstung! Der Dämon lacht und verschwindet.</div>';
+    addLog('Dämon '+dname+': keine Beute.','lp');
+  }else{
+    const sid=pick(eqs);const it=gs.equipped[sid];
+    gs.hero[it.stat]-=it.statVal;if(it.bonus)gs.hero[it.stat]-=it.bonus;delete gs.equipped[sid];
+    dbox.innerHTML='<div class="dtit">😈 '+dname+'</div><div style="font-size:1.6em;margin:5px 0">'+it.icon+'</div><div style="color:var(--dim);font-size:.82em">Dein(e) <span class="'+rc(it.rarity)+'" style="font-family:\'Cinzel\',serif">'+it.name+'</span> wurde zerstört!</div>';
+    document.getElementById('demonDesc').textContent=dname+' erscheint aus der Dunkelheit!';
+    addLog('😈 Dämon zerstörte: '+it.name+'!','lb');
+  }
+  document.getElementById('demonMbd').classList.add('open');render();
+}
+function closeDemon(){document.getElementById('demonMbd').classList.remove('open');setTravel(true);render();}
+// ══════════════════════════════════════════════════
+// QUEST
+// ══════════════════════════════════════════════════
+function setupQuest(){
+  const q=gs.quest;
+  document.getElementById('questPnl').style.display='block';
+  document.getElementById('questCont').innerHTML='<div class="qbox"><div class="qt">'+q.icon+' '+q.name+'</div><div class="qd">'+q.desc+'</div><div class="qrws">'+buildQR(q)+'</div></div>';
+  setTimeout(()=>openQuestModal(),280);
+}
+function buildQR(q){let s='';if(q.reward.gold)s+='<span class="qr">🪙 '+q.reward.gold+'</span>';if(q.reward.xp)s+='<span class="qr">✦ '+q.reward.xp+' XP</span>';if(q.reward.item)s+='<span class="qr">📦 Item</span>';return s;}
+function openQuestModal(){
+  const q=gs.quest;gs.questPhase=0;
+  document.getElementById('qtitle').textContent='📜 '+q.name;
+  document.getElementById('qdesc').textContent=q.desc;
+  document.getElementById('qbox').innerHTML='<div class="qt">Belohnungen</div><div class="qrws">'+buildQR(q)+'</div><div class="qd" style="margin-top:5px">Quest-Siegchance: <b style="color:var(--grn)">'+q.wc+'%</b></div>';
+  document.getElementById('qlbl').textContent='Drehe: Nimmst du die Quest an?';
+  document.getElementById('qSpinBtn').style.display='inline-block';document.getElementById('qSpinBtn').disabled=false;
+  document.getElementById('qDoBtn').style.display='none';
+  document.getElementById('questBan').style.display='none';
+  drawWheel('questWheel',70);
+  const segs=document.getElementById('questWheel')._segs;
+  segs.forEach(s=>{s.label=s.win?'Annehmen':'Ablehnen';});
+  drawWheelFrame('questWheel',0);
+  document.getElementById('questMbd').classList.add('open');
+}
+function spinQuestAccept(){
+  if(gs.questPhase!==0)return;document.getElementById('qSpinBtn').disabled=true;
+  const acc=Math.random()<0.7;
+  spinWheel('questWheel',acc,()=>{
+    const ban=document.getElementById('questBan');
+    if(acc){
+      ban.className='rban win';ban.textContent='✔ Quest angenommen!';ban.style.display='block';gs.questPhase=1;
+      setTimeout(()=>{drawWheel('questWheel',gs.quest.wc);document.getElementById('qlbl').textContent='Drehe: Schaffst du die Quest?';document.getElementById('qDoBtn').style.display='inline-block';ban.style.display='none';},1100);
+    }else{
+      ban.className='rban lose';ban.textContent='✗ Quest abgelehnt.';ban.style.display='block';
+      addLog('Quest "'+gs.quest.name+'" abgelehnt.','li');
+      setTimeout(()=>{document.getElementById('questMbd').classList.remove('open');setTravel(true);},1400);
+    }
+  });
+}
+function spinQuestDo(){
+  if(gs.questPhase!==1)return;document.getElementById('qDoBtn').disabled=true;
+  const wc=Math.min(95,gs.quest.wc+Math.floor(gs.hero.luck/5));
+  const win=Math.random()*100<wc;
+  spinWheel('questWheel',win,()=>{
+    const q=gs.quest;const ban=document.getElementById('questBan');
+    if(win){
+      ban.className='rban win';ban.textContent='⚔ Quest erfolgreich!';ban.style.display='block';
+      gs.hero.gold+=q.reward.gold||0;gs.hero.xp+=q.reward.xp||0;
+      addLog('Quest: '+q.name+'! +'+( q.reward.gold||0)+'G +'+( q.reward.xp||0)+'XP','lo');
+      checkLevelUp();
+      if(q.reward.item){const s=pick(gs.cls?.slots||ALL_SLOTS.map(x=>x.id));const it=mkItem(s,'uncommon',gs.cls?.slots);setTimeout(()=>showLootModal([it]),500);}
+    }else{
+      ban.className='rban lose';ban.textContent='💀 Quest gescheitert! −1 Herz';ban.style.display='block';
+      loseHearts(1);addLog('Quest gescheitert: '+q.name+' −1 Herz','lb');
+    }
+    if(gs.hero.hearts>0)setTimeout(()=>{document.getElementById('questMbd').classList.remove('open');setTravel(true);render();},1500);
+  });
+}
+// ══════════════════════════════════════════════════
+// ITEMS / EQUIP / BAG
+// ══════════════════════════════════════════════════
+function equipOrBag(it){
+  const idx=pendingLoot.indexOf(it);if(idx!==-1)pendingLoot.splice(idx,1);
+  if(!gs.equipped[it.slotId]){equipItem(it);addLog('Ausgerüstet: '+it.name,'lg');}
+  else{const s=gs.bag.findIndex(x=>x===null);if(s!==-1){gs.bag[s]=it;addLog('Im Beutel: '+it.name,'li');}else addLog('Beutel voll!','lb');}
+  render();
+}
+function equipItem(it){
+  const allowed=gs.cls?gs.cls.slots.includes(it.slotId):true;
+  if(!allowed){const s=gs.bag.findIndex(x=>x===null);if(s!==-1)gs.bag[s]=it;addLog('Klasse kann diesen Slot nicht tragen!','lb');return;}
+  if(gs.equipped[it.slotId]){const old=gs.equipped[it.slotId];gs.hero[old.stat]-=old.statVal;if(old.bonus)gs.hero[old.stat]-=old.bonus;if(old.mysticId==='void_heart'){gs.hero.maxHearts=Math.max(3,gs.hero.maxHearts-2);gs.hero.hearts=Math.min(gs.hero.hearts,gs.hero.maxHearts);}const s=gs.bag.findIndex(x=>x===null);if(s!==-1)gs.bag[s]=old;}
+  gs.equipped[it.slotId]=it;gs.hero[it.stat]+=it.statVal;if(it.bonus)gs.hero[it.stat]+=it.bonus;
+  if(it.mysticId==='void_heart'){gs.hero.maxHearts=Math.min(10,gs.hero.maxHearts+2);gs.hero.hearts=Math.min(gs.hero.maxHearts,gs.hero.hearts+2);}
+}
+function equipFromBag(i){
+  const it=gs.bag[i];if(!it)return;
+  const allowed=gs.cls?gs.cls.slots.includes(it.slotId):true;
+  if(!allowed){addLog('Klasse kann diesen Slot nicht tragen!','lb');return;}
+  gs.bag[i]=null;equipItem(it);addLog('Ausgerüstet: '+it.name,'lg');render();
+}
+function unequipItem(id){
+  const it=gs.equipped[id];if(!it)return;
+  const s=gs.bag.findIndex(x=>x===null);if(s===-1){addLog('Beutel voll!','lb');return;}
+  gs.hero[it.stat]-=it.statVal;if(it.bonus)gs.hero[it.stat]-=it.bonus;
+  if(it.mysticId==='void_heart'){gs.hero.maxHearts=Math.max(3,gs.hero.maxHearts-2);gs.hero.hearts=Math.min(gs.hero.hearts,gs.hero.maxHearts);}
+  gs.bag[s]=it;delete gs.equipped[id];addLog('Abgelegt: '+it.name,'li');render();
+}
+// ══════════════════════════════════════════════════
+// JOURNEY / TOOLTIP / RENDER
+// ══════════════════════════════════════════════════
+function renderJourney(){
+  const list=document.getElementById('jlist');list.innerHTML='';
+  const tl={dungeon:'Dungeon',merchant:'Händler',smith:'Schmied',deity:'Wesen',quest:'Quest',demon:'Dämon'};
+  if(gs.currentLoc){
+    const d=document.createElement('div');d.className='jstep cur fup';
+    d.innerHTML='<span class="ji">'+gs.currentLoc.icon+'</span><div><div class="jnm">'+gs.currentLoc.name+'</div><div class="jsb">▶ Aktuell · '+(tl[gs.currentLoc.type]||'')+'</div></div>';
+    list.appendChild(d);
+  }
+  gs.history.slice(1,4).forEach((h,i)=>{
+    const d=document.createElement('div');d.className='jstep';d.style.opacity=String(.58-i*.13);
+    d.innerHTML='<span class="ji">'+h.icon+'</span><div><div class="jnm">'+h.name+'</div><div class="jsb">'+(tl[h.type]||'')+'</div></div>';
+    list.appendChild(d);
+  });
+  const u=document.createElement('div');u.className='junk';u.textContent='··· nächster Ort unbekannt ···';list.appendChild(u);
+}
+function showTT(e,it){
+  const t=document.getElementById('tt');
+  document.getElementById('ttnm').className='ttnm '+rc(it.rarity);document.getElementById('ttnm').textContent=it.name;
+  const sl=ALL_SLOTS.find(s=>s.id===it.slotId);
+  document.getElementById('ttty').textContent=(sl?.name||'')+' · '+(RARITIES[it.rarity]?.name||it.rarity);
+  const sn={atk:'Angriff',def:'Verteidigung',luck:'Glück'}[it.stat];
+  let st='+'+it.statVal+' '+sn;if(it.bonus>0)st+='<br>+'+it.bonus+' Bonus';if(it.price)st+='<br>🪙 '+it.price;
+  if(it.mysticId){const ms=MYSTIC_ITEMS.find(m=>m.id===it.mysticId);if(ms)st+='<br><span style="color:var(--mys)">✦ '+ms.bonus+'</span>';}
+  document.getElementById('ttst').innerHTML=st;t.style.display='block';moveTT(e);
+}
+function moveTT(e){const t=document.getElementById('tt');t.style.left=(e.clientX+12)+'px';t.style.top=(e.clientY-6)+'px';}
+function hideTT(){document.getElementById('tt').style.display='none';}
+function render(){
+  const h=gs.hero;
+  document.getElementById('hlvl').textContent='Stufe '+h.level+' · '+(gs.cls?.name||'Krieger');
+  document.getElementById('xptxt').textContent=h.xp+'/'+h.xpNext;
+  document.getElementById('xpbar').style.width=( h.xp/h.xpNext*100)+'%';
+  document.getElementById('sAtk').textContent=h.atk;document.getElementById('sDef').textContent=h.def;
+  document.getElementById('sLuck').textContent=h.luck;document.getElementById('sSteps').textContent=h.steps;
+  document.getElementById('goldAmt').textContent=h.gold;
+  renderHearts();renderEquip();renderBag();renderBlessings();
+  document.getElementById('bagcnt').textContent='('+gs.bag.filter(x=>x).length+'/20)';
+}
+function renderHearts(){
+  const row=document.getElementById('hrow');row.innerHTML='';
+  for(let i=0;i<gs.hero.maxHearts;i++){const s=document.createElement('span');s.className='hrt'+(i>=gs.hero.hearts?' empty':'');s.textContent='❤️';row.appendChild(s);}
+}
+function renderEquip(){
+  const g=document.getElementById('egrid');g.innerHTML='';
+  const cls=gs.cls;
+  ALL_SLOTS.forEach(sl=>{
+    const allowed=cls?cls.slots.includes(sl.id):true;
+    const it=gs.equipped[sl.id];
+    const d=document.createElement('div');
+    d.className='eslot'+(it?' filled':'')+(allowed?'':' locked');
+    if(!allowed){d.innerHTML='<span class="ei" style="opacity:.2">'+sl.icon+'</span><div class="en">'+sl.name+'</div>';g.appendChild(d);return;}
+    if(it){
+      d.innerHTML='<span class="ei">'+it.icon+'</span><div class="en">'+sl.name+'</div><div class="enm '+rc(it.rarity)+'">'+it.name+'</div>';
+      d.addEventListener('mouseenter',e=>showTT(e,it));d.addEventListener('mousemove',moveTT);d.addEventListener('mouseleave',hideTT);
+      d.addEventListener('click',()=>unequipItem(sl.id));
+    }else{
+      d.innerHTML='<span class="ei" style="opacity:.22">'+sl.icon+'</span><div class="en">'+sl.name+'</div>';
+    }
+    g.appendChild(d);
+  });
+}
+function renderBag(){
+  const g=document.getElementById('bgrid');g.innerHTML='';
+  gs.bag.forEach((it,i)=>{
+    const d=document.createElement('div');d.className='bslot'+(it?' has':'');
+    if(it){
+      d.style.borderColor=RARITIES[it.rarity]?.color||'#aaa';d.innerHTML='<span>'+it.icon+'</span>';
+      const cnt=gs.bag.filter(b=>b&&b.rarity===it.rarity).length;
+      if(cnt>=5&&RO.indexOf(it.rarity)<4){const bd=document.createElement('div');bd.className='smbd';bd.textContent='5+';d.appendChild(bd);}
+      d.addEventListener('mouseenter',e=>showTT(e,it));d.addEventListener('mousemove',moveTT);d.addEventListener('mouseleave',hideTT);
+      d.addEventListener('click',()=>equipFromBag(i));
+    }
+    g.appendChild(d);
+  });
+}
+function renderBlessings(){
+  const a=document.getElementById('blsarea');a.innerHTML='';
+  gs.blessings.forEach(b=>{const s=document.createElement('span');s.className='btg';s.textContent=b.icon+b.name+'('+b.stepsLeft+')';a.appendChild(s);});
+}
+function addLog(msg,cls){
+  cls=cls||'li';const log=document.getElementById('logEl');
+  const d=document.createElement('div');d.className='le '+cls;
+  const t=new Date().toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  d.textContent='['+t+'] '+msg;log.insertBefore(d,log.firstChild);
+}
+// INIT
+initCS();
+</script>
+</body>
+</html>
