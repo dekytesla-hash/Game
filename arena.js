@@ -91,8 +91,9 @@
     paintArenaBackdrop();
   }
 
-  function sum3(a){return a.reduce((s,x)=>s+(x||0),0);}
-  function updateTotals(){
+  function hasGameState(){
+    return window.gs && gs.hero && typeof gs.hero.gold === 'number';
+  }
     const yt=$('arenaYouTotal'),ot=$('arenaOppTotal');
     if(yt) yt.textContent='Siege: '+st.wheelRounds.a+'/3';
     if(ot) ot.textContent='Siege: '+st.wheelRounds.b+'/3';
