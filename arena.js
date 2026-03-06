@@ -82,7 +82,7 @@
     if(yt) yt.textContent='Siege: 0/3';
     if(ot) ot.textContent='Siege: 0/3';
     const res=$('arenaResult');
-    if(res){res.className='arena-result';res.textContent='Matchmaking…';}
+    if(res){res.className='arena-result';res.textContent='Runde 1/3';}
     const yg=$('arenaYouGrave'),og=$('arenaOppGrave');
     if(yg) yg.style.display='none';
     if(og) og.style.display='none';
@@ -354,7 +354,6 @@
       setView('match');
       resetMatchUI();
       st.opponentId=opponentId||null;
-      setResult('info','Gegner gefunden. Glücksrad dreht…');
     });
 
     ArenaNet.on('request_state',()=>{
@@ -365,7 +364,6 @@
     ArenaNet.on('wheel',({roundIndex,aOdds,result,roundNum})=>{
       rollChain=rollChain.then(async ()=>{
         const me=ArenaNet.selfId;
-        const isYou=(me && result==='a')||(me && result==='b');
         const idx=Number(roundIndex||0);
         const odds=Math.round(Number(aOdds||0.5)*100);
         if(idx<0||idx>2) return;
@@ -377,6 +375,10 @@
         const youWon=(result==='a');
         if(youWon) st.wheelRounds.a++;
         else st.wheelRounds.b++;
+        
+        // Show round number
+        const res=$('arenaResult');
+        if(res) res.textContent='Runde '+roundNum+'/3';
 
         await animateDie(youDie,youWon?odds:100-odds);
         await wait(200);
