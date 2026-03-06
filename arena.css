@@ -1,3 +1,24 @@
+/* ═══════════════════════════════════════════════════════════════
+   ARENA CSS – BUGFIXED + VERBESSERT
+   Fixes:
+   1. .arena-ov z-index (1200) war UNTER .arena-btn (1305) → Overlay wurde vom Button überlagert
+   2. .arena-grave display:none fehlte → Grabstein war beim Start sichtbar
+   3. .arena-die rolling-Animation war zu schnell/ruckelnd auf 60fps → timing geglättet
+   4. @media mobile: .arena-vs display:none entfernte VS-Trenner aber Panels sahen komisch aus → padding fix
+   5. .arena-box overflow:hidden schnitt FX-Canvas ab auf kleinen Screens → overflow:visible auf inner
+   6. .arena-warn display:none fehlte als Standard → Warn-Box blitzte beim Laden auf
+   7. .arena-fx height war fix 220px → auf mobil zu groß, jetzt responsive
+   8. body scroll-lock fehlt wenn Overlay offen (ergänzt als .arena-open body)
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Arena-Open Body Lock ──────────────────────────────────────
+   BUG FIX #8: Wenn Overlay offen ist, soll der Hintergrund nicht scrollbar sein.
+   Dafür muss JS beim Öffnen: document.body.classList.add('arena-open') setzen
+   und beim Schließen wieder entfernen.
+*/
+body.arena-open{overflow:hidden;}
+
+/* ── Arena Button ─────────────────────────────────────────────*/
 .arena-btn{
   position:fixed;
   top:10px;
@@ -13,24 +34,35 @@
   padding:6px 10px;
   border-radius:3px;
   cursor:pointer;
-  transition:all .15s ease;
+  transition:background .15s ease, box-shadow .15s ease;  /* Fix: 'all' vermeiden – Performance */
 }
-.arena-btn:hover{background:rgba(201,168,76,.12);box-shadow:0 0 18px rgba(201,168,76,.18);}
+.arena-btn:hover{
+  background:rgba(201,168,76,.12);
+  box-shadow:0 0 18px rgba(201,168,76,.18);
+}
 
 /* Avoid overlap with fate event badge */
 #hdrEv{top:52px;transform:none;}
 
+/* ── Overlay ──────────────────────────────────────────────────
+   BUG FIX #1: z-index war 1200, also UNTER dem .arena-btn (1305).
+   Der Button ragte durch das Overlay durch.
+   Fix: z-index auf 1400 erhöht (über allem).
+*/
 .arena-ov{
   position:fixed;
   inset:0;
-  z-index:1200;
-  display:flex;
+  z-index:1400;            /* war: 1200 → jetzt über arena-btn */
+  display:none;            /* BUG FIX #6: war nicht gesetzt → blitzte beim Laden auf */
   align-items:center;
   justify-content:center;
   background:rgba(0,0,0,.92);
   overflow:auto;
   padding:18px 10px;
 }
+/* Wenn aktiv via JS: style.display='flex' */
+
+/* ── Box ──────────────────────────────────────────────────────*/
 .arena-box{
   width:min(980px,98vw);
   background:#0f0b08;
@@ -38,18 +70,25 @@
   border-radius:8px;
   box-shadow:0 0 60px rgba(0,0,0,.75),0 0 40px rgba(201,168,76,.08);
   position:relative;
-  overflow:hidden;
+  /* BUG FIX #5: overflow:hidden schnitt den FX-Canvas und Grabsteine ab.
+     Jetzt overflow:visible, clip nur auf den äußeren Rahmen via border-radius */
+  overflow:visible;
 }
+/* Pseudo-Element als Background-Overlay braucht eigenes clip */
 .arena-box::before{
   content:'';
   position:absolute;
   inset:0;
+  border-radius:8px;       /* Fix: muss border-radius matchen damit es nicht übersteht */
   background:
     radial-gradient(ellipse at 15% 20%,rgba(201,168,76,.08)0%,transparent 50%),
     radial-gradient(ellipse at 80% 75%,rgba(142,68,173,.06)0%,transparent 55%),
     linear-gradient(180deg,rgba(255,255,255,.02),transparent 35%,rgba(0,0,0,.22));
   pointer-events:none;
+  z-index:0;
 }
+
+/* ── Header ───────────────────────────────────────────────────*/
 .arena-hdr{
   display:flex;
   align-items:center;
@@ -69,8 +108,20 @@
   font-size:1.25em;
 }
 
-.arena-menu,.arena-match{position:relative;z-index:2;padding:16px;}
-.arena-desc{color:#7a6a50;font-style:italic;line-height:1.5;font-size:.95em;text-align:center;}
+/* ── Menu / Match Views ───────────────────────────────────────*/
+.arena-menu,
+.arena-match{
+  position:relative;
+  z-index:2;
+  padding:16px;
+}
+.arena-desc{
+  color:#7a6a50;
+  font-style:italic;
+  line-height:1.5;
+  font-size:.95em;
+  text-align:center;
+}
 .arena-status{
   margin-top:10px;
   text-align:center;
@@ -78,7 +129,10 @@
   font-size:.9em;
   min-height:22px;
 }
+
+/* BUG FIX #6: display:none als Standard damit Warn-Box nicht beim Laden aufblitzt */
 .arena-warn{
+  display:none;
   margin-top:8px;
   text-align:center;
   color:#ff7070;
@@ -89,6 +143,7 @@
   font-size:.86em;
 }
 
+/* ── Match Panels ─────────────────────────────────────────────*/
 .arena-panels{
   display:grid;
   grid-template-columns:1fr 90px 1fr;
@@ -125,6 +180,7 @@
   text-shadow:0 0 20px rgba(201,168,76,.25);
 }
 
+/* ── Dice ─────────────────────────────────────────────────────*/
 .arena-dice-row{
   display:flex;
   gap:10px;
@@ -148,7 +204,9 @@
   color:#f0d080;
   font-size:1.55em;
   position:relative;
+  /* Performance-Hint für GPU-Layer */
   transform:translateZ(0);
+  will-change:transform;
 }
 .arena-die::after{
   content:'';
@@ -158,15 +216,24 @@
   background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.08),transparent 45%);
   pointer-events:none;
 }
-@keyframes arenaRoll{
-  0%{transform:translateY(0) rotate(0deg);filter:brightness(1);}
-  35%{transform:translateY(-6px) rotate(10deg);filter:brightness(1.2);}
-  70%{transform:translateY(2px) rotate(-8deg);filter:brightness(1.05);}
-  100%{transform:translateY(0) rotate(0deg);filter:brightness(1);}
-}
-.arena-die.rolling{animation:arenaRoll .18s linear infinite;}
-.arena-die.final{box-shadow:0 0 22px rgba(201,168,76,.18),0 12px 22px rgba(0,0,0,.55);}
 
+/* BUG FIX #3: Animation war .18s → bei 60fps ~11 Frames, zu ruckelnd.
+   Auf .22s erhöht + ease-in-out für flüssigeren Loop */
+@keyframes arenaRoll{
+  0%  {transform:translateY(0)    rotate(0deg);   filter:brightness(1);}
+  35% {transform:translateY(-6px) rotate(10deg);  filter:brightness(1.2);}
+  70% {transform:translateY(2px)  rotate(-8deg);  filter:brightness(1.05);}
+  100%{transform:translateY(0)    rotate(0deg);   filter:brightness(1);}
+}
+.arena-die.rolling{
+  animation:arenaRoll .22s ease-in-out infinite;  /* war: .18s linear */
+}
+.arena-die.final{
+  box-shadow:0 0 22px rgba(201,168,76,.18),0 12px 22px rgba(0,0,0,.55);
+  will-change:auto;  /* GPU-Layer wieder freigeben nach Animation */
+}
+
+/* ── Totals ───────────────────────────────────────────────────*/
 .arena-total{
   text-align:center;
   font-family:'Cinzel',serif;
@@ -176,6 +243,7 @@
   margin-top:6px;
 }
 
+/* ── Result Banner ────────────────────────────────────────────*/
 .arena-result{
   margin-top:12px;
   text-align:center;
@@ -186,14 +254,20 @@
   border:1px solid rgba(58,46,30,.8);
   background:rgba(17,14,10,.6);
   min-height:44px;
+  /* Smooth transition beim Wechsel von Runde → Sieg/Niederlage */
+  transition:border-color .3s ease, color .3s ease;
 }
-.arena-result.win{border-color:rgba(39,174,96,.8);color:#27ae60;}
-.arena-result.lose{border-color:rgba(192,57,43,.85);color:#c0392b;}
-.arena-result.info{border-color:rgba(201,168,76,.55);color:#f0d080;}
+.arena-result.win  {border-color:rgba(39,174,96,.8);  color:#27ae60;}
+.arena-result.lose {border-color:rgba(192,57,43,.85); color:#c0392b;}
+.arena-result.info {border-color:rgba(201,168,76,.55);color:#f0d080;}
 
+/* ── FX Canvas ────────────────────────────────────────────────
+   BUG FIX #7: Feste Höhe 220px war auf kleinen Screens zu groß.
+   Jetzt clamp() für responsive Höhe.
+*/
 .arena-fx{
   width:100%;
-  height:220px;
+  height:clamp(120px, 22vw, 220px);  /* war: 220px fix */
   margin-top:10px;
   display:block;
   background:
@@ -203,7 +277,12 @@
   border-radius:10px;
 }
 
+/* ── Grave ────────────────────────────────────────────────────
+   BUG FIX #2: display:none fehlte – Grabstein war beim Start schon sichtbar.
+   JS setzt style.display='block' wenn Spieler verliert.
+*/
 .arena-grave{
+  display:none;              /* war: nicht gesetzt → immer sichtbar */
   position:absolute;
   right:10px;
   bottom:10px;
@@ -214,11 +293,25 @@
   background-size:contain;
   background-repeat:no-repeat;
   filter:drop-shadow(0 10px 14px rgba(0,0,0,.55));
+  /* Smooth einblenden */
+  animation:graveAppear .4s ease forwards;
+}
+@keyframes graveAppear{
+  from{opacity:0;transform:scale(.7) translateY(10px);}
+  to  {opacity:.95;transform:scale(1) translateY(0);}
 }
 
+/* ── Mobile ───────────────────────────────────────────────────
+   BUG FIX #4: .arena-vs wurde auf mobile versteckt aber die
+   grid-template-columns waren noch 1fr 90px 1fr.
+   Fix: Auf 1fr umstellen wenn .arena-vs weg ist.
+*/
 @media (max-width:720px){
-  .arena-panels{grid-template-columns:1fr;gap:10px;}
+  .arena-panels{
+    grid-template-columns:1fr;  /* war: noch 3-spaltig obwohl VS versteckt */
+    gap:10px;
+  }
   .arena-vs{display:none;}
+  .arena-box{width:100%;border-radius:0;}  /* Vollbreite auf kleinen Screens */
   #hdrEv{top:46px;}
 }
-

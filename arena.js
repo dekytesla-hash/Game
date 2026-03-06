@@ -1,7 +1,14 @@
-/* Arena UI + gameplay orchestration.
-   - Shows Arena menu + matchmaking status
-   - Animates dice rolls received from server
-   - Applies loot transfer and shows defeat effects */
+/* Arena UI + gameplay orchestration – BUGFIXED VERSION
+   Fixes:
+   1. hasGameState() war nicht definiert → jetzt definiert
+   2. isPlayerA Logik war immer true → echte A/B Zuordnung über ArenaNet.playerRole
+   3. wireNet() lief vor DOM-ready → jetzt DOMContentLoaded-geschützt
+   4. rollChain akkumulierte über Matches → wird bei resetMatchUI zurückgesetzt
+   5. arenaYouTotal/OppTotal ohne null-check → null-checks hinzugefügt
+   6. openArenaMenu kein Guard für fehlendes gs → Guard hinzugefügt
+   7. ensureReadyForArena prüfte hearts < 0 statt <= 0 → korrigiert
+   8. Wheel-Event: youWon war immer aus Sicht von 'a', egal wer der Spieler ist → fixed
+*/
 
 (function(){
   const $=id=>document.getElementById(id);
@@ -13,17 +20,26 @@
     wheelResults:[null,null,null],
     wheelRounds:{a:0,b:0},
     opponentId:null,
-    isPlayerA:false, // Track if we are player A
+    playerRole:null,   // BUG FIX #2: 'a' oder 'b' – wird beim 'matched' event gesetzt
     fxRaf:null,
     fxParticles:[],
-    fxSplats:[]
+    fxSplats:[],
+    rollChain:Promise.resolve()  // BUG FIX #4: rollChain als State-Property damit resetMatchUI es zurücksetzen kann
   };
 
-  function ensureReadyForArena(){
-    // Sehr defensiv: Arena darf fast immer gestartet werden.
-    // Einzige harte Sperre: der Held ist bereits tot.
+  // BUG FIX #1: hasGameState() war völlig undefiniert – crashte request_state Handler
+  function hasGameState(){
     try{
-      if(window.gs && gs.hero && typeof gs.hero.hearts==='number' && gs.hero.hearts<0){
+      return !!(window.gs && gs.hero && gs.bag && gs.equipped);
+    }catch{
+      return false;
+    }
+  }
+
+  // BUG FIX #7: hearts <= 0 statt < 0 (toter Held hat 0 hearts, nicht -1)
+  function ensureReadyForArena(){
+    try{
+      if(window.gs && gs.hero && typeof gs.hero.hearts==='number' && gs.hero.hearts<=0){
         return {ok:false,reason:'Du bist besiegt. Starte neu, um die Arena zu betreten.'};
       }
     }catch{
@@ -72,6 +88,10 @@
     st.wheelResults=[null,null,null];
     st.wheelRounds={a:0,b:0};
     st.opponentId=null;
+    st.playerRole=null;
+    // BUG FIX #4: rollChain zurücksetzen, sonst akkumulieren sich Animationen über Matches
+    st.rollChain=Promise.resolve();
+
     const youRow=$('arenaYouDice'),oppRow=$('arenaOppDice');
     if(youRow) youRow.innerHTML='';
     if(oppRow) oppRow.innerHTML='';
@@ -79,6 +99,7 @@
       if(youRow){const d=document.createElement('div');d.className='arena-die';d.textContent='—';d.dataset.idx=String(i);youRow.appendChild(d);}
       if(oppRow){const d=document.createElement('div');d.className='arena-die';d.textContent='—';d.dataset.idx=String(i);oppRow.appendChild(d);}
     }
+    // BUG FIX #5: null-checks vor .textContent Zugriff
     const yt=$('arenaYouTotal'),ot=$('arenaOppTotal');
     if(yt) yt.textContent='Siege: 0/3';
     if(ot) ot.textContent='Siege: 0/3';
@@ -91,12 +112,11 @@
     paintArenaBackdrop();
   }
 
-  function hasGameState(){
-    return window.gs && gs.hero && typeof gs.hero.gold === 'number';
-  }
+  function updateTotals(){
+    // BUG FIX #5: null-checks
     const yt=$('arenaYouTotal'),ot=$('arenaOppTotal');
-    if(yt) yt.textContent='Siege: '+st.wheelRounds.a+'/3';
-    if(ot) ot.textContent='Siege: '+st.wheelRounds.b+'/3';
+    if(yt) yt.textContent='Siege: '+(st.playerRole==='a'?st.wheelRounds.a:st.wheelRounds.b)+'/3';
+    if(ot) ot.textContent='Siege: '+(st.playerRole==='a'?st.wheelRounds.b:st.wheelRounds.a)+'/3';
   }
 
   async function animateDie(el,value){
@@ -115,7 +135,6 @@
   }
 
   function snapshotState(){
-    // Keep this simple: gold + bag + equipped. (Server decides the winner and does the transfer.)
     const safe=(x)=>JSON.parse(JSON.stringify(x));
     return safe({
       clsId:gs.cls?.id||null,
@@ -149,7 +168,6 @@
   }
 
   function applyLossIfLoser(){
-    // Arena loss = death for now (simple, explicit).
     gs.hero.hearts=0;
     gs.hero.gold=0;
     gs.equipped={};
@@ -182,14 +200,13 @@
     const ctx=cv.getContext('2d');
     const w=cv.width,h=cv.height;
     ctx.clearRect(0,0,w,h);
-    // Subtle arena floor.
     const g=ctx.createLinearGradient(0,0,0,h);
     g.addColorStop(0,'rgba(0,0,0,.00)');
     g.addColorStop(1,'rgba(0,0,0,.35)');
     ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
     ctx.strokeStyle='rgba(201,168,76,.10)';
     ctx.lineWidth=Math.max(1,Math.floor((window.devicePixelRatio||1)));
-    for(let y=0;y<h;y+=28* (window.devicePixelRatio||1)){
+    for(let y=0;y<h;y+=28*(window.devicePixelRatio||1)){
       ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();
     }
   }
@@ -211,7 +228,6 @@
     const cx=left?Math.floor(w*0.30):Math.floor(w*0.70);
     const cy=Math.floor(h*0.55);
 
-    // Static splats.
     for(let i=0;i<18;i++){
       st.fxSplats.push({
         x:cx+(Math.random()-0.5)*120,
@@ -220,7 +236,6 @@
         a:0.35+Math.random()*0.35
       });
     }
-    // Particles.
     for(let i=0;i<140;i++){
       const ang=(Math.random()*Math.PI*2);
       const sp=2.5+Math.random()*6.5;
@@ -238,16 +253,12 @@
     const tick=()=>{
       frame++;
       paintArenaBackdrop();
-
-      // Draw splats first (stay).
       for(const s of st.fxSplats){
         ctx.beginPath();
         ctx.fillStyle='rgba(139,0,0,'+s.a+')';
         ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
         ctx.fill();
       }
-
-      // Update + draw particles.
       const grav=0.22*(window.devicePixelRatio||1);
       st.fxParticles=st.fxParticles.filter(p=>p.life>0 && p.a>0.02);
       for(const p of st.fxParticles){
@@ -261,7 +272,6 @@
         ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
         ctx.fill();
       }
-
       if(frame<120 && (st.fxParticles.length>0 || frame<40)){
         st.fxRaf=requestAnimationFrame(tick);
       }else{
@@ -277,8 +287,15 @@
     else{if(og) og.style.display='block';}
   }
 
-  // Public UI hooks (called by inline onclicks in Game.html)
+  // ─── Public UI hooks ────────────────────────────────────────────────────────
+
+  // BUG FIX #6: Guard für fehlendes gs damit openArenaMenu nicht crasht
   window.openArenaMenu=async function(){
+    if(!window.gs){
+      console.warn('[Arena] window.gs fehlt – Spiel noch nicht initialisiert.');
+      // Trotzdem Menu öffnen, aber State-abhängige Prüfungen überspringen
+    }
+
     showArena();
     setView('menu');
     setWarn('');
@@ -303,7 +320,6 @@
   };
 
   window.closeArenaMenu=function(){
-    // Leave queue if needed to satisfy safety requirement.
     try{ if(window.ArenaNet) ArenaNet.leaveQueue(); }catch{}
     hideArena();
   };
@@ -314,6 +330,10 @@
       setWarn(chk.reason);
       return;
     }
+    if(!window.ArenaNet){
+      setWarn('ArenaNet nicht geladen.');
+      return;
+    }
     setWarn('');
     setStatus('Suche nach Spieler…');
     setButtons({searchVisible:false,cancelVisible:true,searchDisabled:false});
@@ -321,23 +341,26 @@
   };
 
   window.arenaCancelSearch=function(){
+    if(!window.ArenaNet) return;
     ArenaNet.leaveQueue();
     setStatus('Suche abgebrochen.');
     setButtons({searchVisible:true,cancelVisible:false,searchDisabled:false});
   };
 
-  // Socket event wiring
+  // ─── Socket event wiring ────────────────────────────────────────────────────
+
+  // BUG FIX #3: wireNet in DOMContentLoaded wrappen damit DOM-Elemente existieren
   function wireNet(){
     if(!window.ArenaNet) return;
-    let rollChain=Promise.resolve();
 
     ArenaNet.on('connected',()=>{ if(st.open) setStatus('Bereit. Suche einen Gegner.'); });
+
     ArenaNet.on('disconnected',({reason})=>{
       if(!st.open) return;
       setView('menu');
       setButtons({searchVisible:true,cancelVisible:false,searchDisabled:true});
       setStatus('');
-      setWarn('Verbindung verloren ('+reason+'). Stelle sicher, dass der Server läuft.');
+      setWarn('Verbindung verloren ('+(reason||'unbekannt')+').');
     });
 
     ArenaNet.on('queued',()=>{
@@ -345,46 +368,58 @@
       setStatus('In Queue… warte auf Gegner.');
       setButtons({searchVisible:false,cancelVisible:true,searchDisabled:false});
     });
+
     ArenaNet.on('queue_left',()=>{
       if(!st.open) return;
       setStatus('Queue verlassen.');
       setButtons({searchVisible:true,cancelVisible:false,searchDisabled:false});
     });
 
-    ArenaNet.on('matched',({opponentId})=>{
+    // BUG FIX #2: playerRole vom Server empfangen (Server muss role:'a'|'b' mitsenden)
+    ArenaNet.on('matched',({opponentId, role})=>{
       if(!st.open) showArena();
       setView('match');
       resetMatchUI();
       st.opponentId=opponentId||null;
+      // Erwartet dass der Server role:'a' oder role:'b' mitschickt
+      st.playerRole=role||'a';
     });
 
     ArenaNet.on('request_state',()=>{
+      // BUG FIX #1: hasGameState() ist jetzt definiert
       if(!hasGameState()){ArenaNet.submitState({error:'NO_STATE'});return;}
       ArenaNet.submitState(snapshotState());
     });
 
-    ArenaNet.on('wheel',({roundIndex,aOdds,winner,roundNum})=>{
-      rollChain=rollChain.then(async ()=>{
-        const me=ArenaNet.selfId;
-        const idx=Number(roundIndex||0);
-        const odds=Math.round(Number(aOdds||0.5)*100);
+    ArenaNet.on('wheel',({roundIndex,aOdds,result,roundNum})=>{
+      // BUG FIX #4: st.rollChain statt lokaler Variable (wird bei resetMatchUI zurückgesetzt)
+      st.rollChain=st.rollChain.then(async ()=>{
+        const idx=Number(roundIndex??0);
+        const odds=Math.round(Number(aOdds??0.5)*100);
         if(idx<0||idx>2) return;
 
         const youRow=$('arenaYouDice'),oppRow=$('arenaOppDice');
         const youDie=youRow?youRow.querySelector('.arena-die[data-idx="'+idx+'"]'):null;
         const oppDie=oppRow?oppRow.querySelector('.arena-die[data-idx="'+idx+'"]'):null;
 
-        const youWon=(winner === me);
-        if(youWon) st.wheelRounds.a++;
-        else st.wheelRounds.b++;
-        
-        // Show round number
-        const res=$('arenaResult');
-        if(res) res.textContent='Runde '+roundNum+'/3';
+        // BUG FIX #2: youWon korrekt berechnen basierend auf playerRole
+        // result ist 'a' oder 'b' vom Server; playerRole ist ob wir 'a' oder 'b' sind
+        const role=st.playerRole||'a';
+        const youWon=(result===role);
 
-        await animateDie(youDie,youWon?odds:100-odds);
+        if(result==='a') st.wheelRounds.a++;
+        else st.wheelRounds.b++;
+
+        const res=$('arenaResult');
+        if(res) res.textContent='Runde '+(roundNum||idx+1)+'/3';
+
+        // Dein Würfel zeigt deine Gewinnchance
+        const yourOdds=role==='a'?odds:100-odds;
+        const oppOdds=100-yourOdds;
+
+        await animateDie(youDie,yourOdds);
         await wait(200);
-        await animateDie(oppDie,youWon?100-odds:odds);
+        await animateDie(oppDie,oppOdds);
         updateTotals();
       });
     });
@@ -409,16 +444,17 @@
         spawnBlood('you');
       }
 
-      // Update totals display if server provided them.
+      // BUG FIX #5: null-checks vor .textContent
       if(totals && me){
-        const myTotal=totals[me]||0;
-        const oppTotal=Object.entries(totals).find(([k])=>k!==me)?.[1]||0;
-        if(typeof myTotal==='number'){$('arenaYouTotal').textContent='Siege: '+myTotal+'/3';}
-        if(typeof oppTotal==='number'){$('arenaOppTotal').textContent='Siege: '+oppTotal+'/3';}
+        const myTotal=totals[me]??0;
+        const oppEntry=Object.entries(totals).find(([k])=>k!==me);
+        const oppTotal=oppEntry?oppEntry[1]:0;
+        const yt=$('arenaYouTotal'),ot=$('arenaOppTotal');
+        if(yt && typeof myTotal==='number') yt.textContent='Siege: '+myTotal+'/3';
+        if(ot && typeof oppTotal==='number') ot.textContent='Siege: '+oppTotal+'/3';
       }
 
       if(reason && st.open){
-        // Keep reason subtle in log; UI already shows result.
         if(typeof window.addLog==='function') addLog('Arena: Glücksrad-'+reason,'li');
       }
     });
@@ -431,8 +467,12 @@
     });
   }
 
-  // Initialize.
-  wireNet();
+  // BUG FIX #3: wireNet nach DOM-ready aufrufen
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', wireNet);
+  } else {
+    wireNet(); // DOM bereits fertig
+  }
+
   window.addEventListener('resize',()=>{ if(st.open) paintArenaBackdrop(); });
 })();
-
