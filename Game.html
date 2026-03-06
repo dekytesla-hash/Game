@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DUNGEON FATES</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="arena.css">
 <style>
 :root{--gold:#c9a84c;--glt:#f0d080;--dark:#0a0806;--pnl:#110e0a;--pnl2:#1a1510;--brd:#3a2e1e;--red:#c0392b;--grn:#27ae60;--blu:#2980b9;--pur:#8e44ad;--txt:#d4c4a0;--dim:#7a6a50;--ora:#e67e22;--mys:#e040fb;}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -184,6 +185,9 @@ canvas.wc{border-radius:50%;box-shadow:0 0 22px rgba(0,0,0,.8),0 0 44px rgba(201
 </head>
 <body>
 <canvas id="cvcv"></canvas>
+<audio id="csMusic" preload="auto" loop>
+  <source src="savannamusic-echoes-218060.mp3" type="audio/mpeg">
+</audio>
 <div class="cs-ov" id="csOv">
   <div class="cs-box">
     <div class="cs-title">⚔ DUNGEON FATES</div>
@@ -198,10 +202,50 @@ canvas.wc{border-radius:50%;box-shadow:0 0 22px rgba(0,0,0,.8),0 0 44px rgba(201
   <div style="color:var(--txt);font-size:.87em" id="goStats"></div>
   <button class="btn" onclick="location.reload()">↺ Neu starten</button>
 </div>
+<div class="arena-ov" id="arenaOv" style="display:none">
+  <div class="arena-box">
+    <div class="arena-hdr">
+      <div class="arena-title">⚔️ Arena</div>
+      <button class="btn" type="button" onclick="closeArenaMenu()">Schließen</button>
+    </div>
+    <div class="arena-menu" id="arenaMenu">
+      <div class="arena-desc">Betritt die Arena und messe dein Glück im Würfelduell. Der Sieger erhält die Beute des Verlierers.</div>
+      <div class="fxc" style="margin-top:10px">
+        <button class="btng btn" id="arenaSearchBtn" type="button" onclick="arenaSearch()">Search for Player</button>
+        <button class="btnr btn" id="arenaCancelBtn" type="button" onclick="arenaCancelSearch()" style="display:none">Cancel</button>
+      </div>
+      <div class="arena-status" id="arenaStatus"></div>
+      <div class="arena-warn" id="arenaWarn" style="display:none"></div>
+    </div>
+    <div class="arena-match" id="arenaMatch" style="display:none">
+      <div class="arena-panels">
+        <div class="arena-side" id="arenaYou">
+          <div class="arena-side-title">Du</div>
+          <div class="arena-dice-row" id="arenaYouDice"></div>
+          <div class="arena-total" id="arenaYouTotal">Total: —</div>
+          <div class="arena-grave" id="arenaYouGrave" style="display:none"></div>
+        </div>
+        <div class="arena-vs">VS</div>
+        <div class="arena-side" id="arenaOpp">
+          <div class="arena-side-title">Gegner</div>
+          <div class="arena-dice-row" id="arenaOppDice"></div>
+          <div class="arena-total" id="arenaOppTotal">Total: —</div>
+          <div class="arena-grave" id="arenaOppGrave" style="display:none"></div>
+        </div>
+      </div>
+      <canvas class="arena-fx" id="arenaFx" width="900" height="420"></canvas>
+      <div class="arena-result" id="arenaResult"></div>
+      <div class="fxc" style="margin-top:12px">
+        <button class="btn" type="button" onclick="closeArenaMenu()">Zurück</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="app" style="display:none">
 <header class="ghdr">
   <div class="gtitle">⚔ DUNGEON FATES ⚔</div>
   <div class="gsub">Jeder Schritt führt ins Unbekannte</div>
+  <button class="arena-btn" id="arenaBtn" type="button" onclick="openArenaMenu()">⚔️ Arena</button>
   <div class="hdr-ev" id="hdrEv" onclick="showFateInfo()"></div>
 </header>
 <div id="fateBar" class="fate-bar"></div>
@@ -544,6 +588,62 @@ function h2r(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),
 // ══════════════════════════════════════════════════
 // CLASS SELECT
 // ══════════════════════════════════════════════════
+let csMusic=null;
+let csMusicFadeRaf=null;
+let csMusicUnlockArmed=false;
+function fadeAudioTo(a,target,ms,onDone){
+  if(!a)return;
+  if(csMusicFadeRaf)cancelAnimationFrame(csMusicFadeRaf);
+  const start=a.volume||0;
+  const t0=performance.now();
+  const step=(now)=>{
+    const p=Math.min((now-t0)/ms,1);
+    const ease=1-Math.pow(1-p,3);
+    a.volume=Math.max(0,Math.min(1,start+(target-start)*ease));
+    if(p<1)csMusicFadeRaf=requestAnimationFrame(step);
+    else{a.volume=target;csMusicFadeRaf=null;if(onDone)onDone();}
+  };
+  csMusicFadeRaf=requestAnimationFrame(step);
+}
+function initCSMusic(){
+  csMusic=document.getElementById('csMusic');
+  if(csMusic){csMusic.volume=0;}
+  armCSMusicAutostart();
+}
+function startCSMusic(){
+  if(!csMusic)return;
+  try{
+    const p=csMusic.play();
+    if(p&&typeof p.then==='function'){
+      p.then(()=>fadeAudioTo(csMusic,0.55,1500)).catch(()=>{ /* autoplay blocked */ });
+    }else{
+      fadeAudioTo(csMusic,0.55,1500);
+    }
+  }catch{}
+}
+function stopCSMusic(){
+  if(!csMusic)return;
+  fadeAudioTo(csMusic,0,3200,()=>{
+    csMusic.pause();
+    try{csMusic.currentTime=0;}catch{}
+  });
+}
+function armCSMusicAutostart(){
+  if(!csMusic)return;
+  startCSMusic();
+  if(csMusicUnlockArmed)return;
+  csMusicUnlockArmed=true;
+
+  const unlock=()=>{
+    window.removeEventListener('pointerdown',unlock,true);
+    window.removeEventListener('keydown',unlock,true);
+    window.removeEventListener('touchstart',unlock,true);
+    startCSMusic();
+  };
+  window.addEventListener('pointerdown',unlock,true);
+  window.addEventListener('keydown',unlock,true);
+  window.addEventListener('touchstart',unlock,true);
+}
 function initCS(){
   const g=document.getElementById('csGrid');
   CLASSES.forEach(cls=>{
@@ -555,6 +655,7 @@ function initCS(){
   });
 }
 function startGame(cls){
+  stopCSMusic();
   gs.cls=cls;
   gs.hero={level:1,hearts:cls.stats.hearts,maxHearts:cls.stats.hearts,xp:0,xpNext:100,atk:cls.stats.atk,def:cls.stats.def,luck:cls.stats.luck,gold:50,steps:0};
   document.getElementById('csOv').style.display='none';
@@ -1261,7 +1362,10 @@ function addLog(msg,cls){
   d.textContent='['+t+'] '+msg;log.insertBefore(d,log.firstChild);
 }
 // INIT
+initCSMusic();
 initCS();
 </script>
+<script src="matchmaking.js"></script>
+<script src="arena.js"></script>
 </body>
 </html>

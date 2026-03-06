@@ -1,0 +1,26 @@
+{
+  "name": "dungeon",
+  "version": "1.0.0",
+  "description": "Dungeon Fates browser game + multiplayer arena server",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dekytesla-hash/Game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/dekytesla-hash/Game/issues"
+  },
+  "homepage": "https://github.com/dekytesla-hash/Game#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3"
+  }
+}
